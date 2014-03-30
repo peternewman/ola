@@ -53,6 +53,7 @@ using ola::http::HTTPRequest;
 using ola::http::HTTPResponse;
 using ola::http::HTTPServer;
 using ola::rdm::UID;
+using ola::rdm::SlotDescriptor;
 using ola::thread::MutexLocker;
 using ola::web::BoolItem;
 using ola::web::GenericItem;
@@ -120,6 +121,7 @@ const char RDMHTTPModule::PRODUCT_DETAIL_SECTION[] = "product_detail";
 const char RDMHTTPModule::PROXIED_DEVICES_SECTION[] = "proxied_devices";
 const char RDMHTTPModule::RESET_DEVICE_SECTION[] = "reset_device";
 const char RDMHTTPModule::SENSOR_SECTION[] = "sensor";
+const char RDMHTTPModule::SLOT_SECTION[] = "slot";
 const char RDMHTTPModule::TILT_INVERT_SECTION[] = "tilt_invert";
 
 // section names
@@ -479,6 +481,8 @@ int RDMHTTPModule::JsonSectionInfo(const HTTPRequest *request,
     error = GetPersonalities(request, response, universe_id, *uid, true);
   } else if (section_id == DMX_ADDRESS_SECTION) {
     error = GetStartAddress(request, response, universe_id, *uid);
+  } else if (section_id == SLOT_SECTION) {
+    error = GetSlots(request, response, universe_id, *uid, true);
   } else if (section_id == SENSOR_SECTION) {
     error = GetSensor(request, response, universe_id, *uid);
   } else if (section_id == DEVICE_HOURS_SECTION) {
@@ -886,7 +890,7 @@ void RDMHTTPModule::UIDIdentifyHandler(HTTPResponse *response,
 
 
 /**
- * Send the response to a dmx personality section
+ * Send the response to a DMX personality section
  */
 void RDMHTTPModule::SendPersonalityResponse(HTTPResponse *response,
                                             personality_info *info) {
@@ -2036,6 +2040,113 @@ string RDMHTTPModule::SetStartAddress(const HTTPRequest *request,
                         response),
       &error);
   return error;
+}
+
+
+/**
+ * Handle the request for the slot section.
+ */
+string RDMHTTPModule::GetSlots(const HTTPRequest *request,
+                               HTTPResponse *response,
+                               unsigned int universe_id,
+                               const UID &uid,
+                               bool include_descriptions) {
+  string hint = request->GetParameter(HINT_KEY);
+  string error;
+
+  OLA_INFO << "Getting slots";
+
+  slots_info *info = new slots_info;
+  info->universe_id = universe_id;
+  info->uid = new UID(uid);
+  info->include_descriptions = include_descriptions || (hint == "l");
+  info->next = 1;
+
+  OLA_INFO << "Pre GetSlotInfo";
+
+  m_rdm_api.GetSlotInfo(
+      universe_id,
+      uid,
+      ola::rdm::ROOT_RDM_DEVICE,
+      NewSingleCallback(this,
+                        &RDMHTTPModule::GetSlotsHandler,
+                        response,
+                        info),
+      &error);
+  OLA_INFO << "Post GetSlotInfo";
+  return error;
+  (void) request;
+}
+
+
+/**
+ * Handle the response to a slot info call.
+ */
+void RDMHTTPModule::GetSlotsHandler(
+    HTTPResponse *response,
+    slots_info *info,
+    const ola::rdm::ResponseStatus &status,
+    const std::vector<SlotDescriptor> &slot_descriptors) {
+  OLA_INFO << "Get slots handler";
+
+  if (CheckForRDMError(response, status)) {
+    delete info->uid;
+    delete info;
+    return;
+  }
+
+  OLA_INFO << "Got slot response";
+	
+	(void) slot_descriptors;
+
+	/**
+  * std::vector<SlotDescriptor>::const_iterator iter;
+  * for (iter = slot_descriptors.begin(); iter != slot_descriptors.end(); ++iter) {
+  *   OLA_INFO << "Looking at slot " << iter->slot_offset;
+  *   slot_detail slot = slot_detail();
+  *   slot.offset = iter->slot_offset;
+  *   slot.type = iter->slot_type;
+  *   slot.label_id = iter->slot_label;
+  *   info->slots.push_back(slot);
+  * }
+	 */
+
+
+  OLA_INFO << "Processed all slots";
+
+  //if (info->include_descriptions) {
+  //  GetNextPersonalityDescription(response, info);
+  //} else {
+    SendSectionSlotsResponse(response, info);
+  //}
+}
+
+
+/**
+ * Send the response to a slots section
+ */
+void RDMHTTPModule::SendSectionSlotsResponse(HTTPResponse *response,
+                                             slots_info *info) {
+  JsonSection section;
+  SelectItem *item = new SelectItem("Slots", GENERIC_UINT_FIELD);
+
+  OLA_INFO << "Generating slot JSON";
+
+	/**
+  * std::vector<slot_detail>::const_iterator iter;
+  * for (iter = info->slots.begin(); iter != info->slots.end(); ++iter) {
+  *     stringstream str;
+  *     str << iter->offset << " (" << iter->type << ", " << iter->label_id << ")";
+  *     item->AddItem(str.str(), iter->offset);
+  * }
+	 */
+
+
+  section.AddItem(item);
+  RespondWithSection(response, section);
+
+  delete info->uid;
+  delete info;
 }
 
 

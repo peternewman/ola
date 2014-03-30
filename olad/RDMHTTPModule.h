@@ -135,6 +135,22 @@ class RDMHTTPModule {
       std::vector<std::pair<uint32_t, std::string> > personalities;
     } personality_info;
 
+    typedef struct {
+      uint16_t offset;
+      uint8_t type;
+      uint16_t label_id;
+      std::string description;
+      uint8_t default_value;
+    } slot_detail;
+
+    typedef struct {
+      unsigned int universe_id;
+      const ola::rdm::UID *uid;
+      bool include_descriptions;
+      unsigned int next;
+      std::vector<slot_detail> slots;
+    } slots_info;
+
     // UID resolution methods
     void HandleUIDList(ola::http::HTTPResponse *response,
                        unsigned int universe_id,
@@ -362,6 +378,20 @@ class RDMHTTPModule {
                                 ola::http::HTTPResponse *response,
                                 unsigned int universe_id,
                                 const ola::rdm::UID &uid);
+
+    std::string GetSlots(const ola::http::HTTPRequest *request,
+                               ola::http::HTTPResponse *response,
+                               unsigned int universe_id,
+                               const ola::rdm::UID &uid,
+                               bool include_descriptions = false);
+
+    void GetSlotsHandler(ola::http::HTTPResponse *response,
+                         slots_info *info,
+                         const ola::rdm::ResponseStatus &status,
+                         const std::vector<ola::rdm::SlotDescriptor> &slot_descriptors);
+
+    void SendSectionSlotsResponse(ola::http::HTTPResponse *response,
+                                  slots_info *info);
 
     std::string GetSensor(const ola::http::HTTPRequest *request,
                           ola::http::HTTPResponse *response,
@@ -637,6 +667,7 @@ class RDMHTTPModule {
     static const char PROXIED_DEVICES_SECTION[];
     static const char RESET_DEVICE_SECTION[];
     static const char SENSOR_SECTION[];
+    static const char SLOT_SECTION[];
     static const char TILT_INVERT_SECTION[];
 
     static const char BOOT_SOFTWARE_SECTION_NAME[];
