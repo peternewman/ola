@@ -285,16 +285,16 @@ void FlagRegistry::GenManPage() {
   time_t curtime;
   curtime = time(NULL);
   struct tm loctime;
-#ifdef WIN32
+#ifdef _WIN32
   loctime = *gmtime(&curtime);  // NOLINT(runtime/threadsafe_fn)
 #else
   gmtime_r(&curtime, &loctime);
 #endif
   strftime(date_str, arraysize(date_str), "%B %Y", &loctime);
 
-  // Not using FilenameFromPath to avoid further dependancies
+  // Not using FilenameFromPathOrPath to avoid further dependancies
   string exe_name = m_argv0;
-#ifdef WIN32
+#ifdef _WIN32
   char directory_separator = '\\';
 #else
   char directory_separator = '/';

@@ -23,7 +23,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <string.h>
-#ifdef WIN32
+#ifdef _WIN32
 #define VC_EXTRALEAN
 #include <windows.h>
 #endif
@@ -42,16 +42,12 @@ namespace file {
 using std::string;
 using std::vector;
 
-#ifdef WIN32
+#ifdef _WIN32
 const char PATH_SEPARATOR = '\\';
 #else
 const char PATH_SEPARATOR = '/';
 #endif
 
-/**
- * Find all files in a directory that match the given prefix.
- * @returns a vector with the absolute path of the matching files.
- */
 void FindMatchingFiles(const string &directory,
                        const string &prefix,
                        vector<string> *files) {
@@ -60,18 +56,13 @@ void FindMatchingFiles(const string &directory,
   FindMatchingFiles(directory, prefixes, files);
 }
 
-
-/**
- * Find all files in a directory that match any of the prefixes.
- * @returns a vector with the absolute path of the matching files.
- */
 void FindMatchingFiles(const string &directory,
                        const vector<string> &prefixes,
                        vector<string> *files) {
   if (directory.empty() || prefixes.empty())
     return;
 
-#ifdef WIN32
+#ifdef _WIN32
   WIN32_FIND_DATA find_file_data;
   HANDLE h_find;
 
@@ -118,12 +109,26 @@ void FindMatchingFiles(const string &directory,
 #endif
 }
 
-string FilenameFromPath(const string &path) {
+void ListDirectory(const std::string& directory,
+                   std::vector<std::string> *files) {
+  FindMatchingFiles(directory, "", files);
+}
+
+string FilenameFromPathOrDefault(const string &path,
+                                 const string &default_value) {
   string::size_type last_path_sep = string::npos;
   last_path_sep = path.find_last_of(PATH_SEPARATOR);
   if (last_path_sep == string::npos)
-    return "";
+    return default_value;
   return path.substr(last_path_sep + 1);  // Don't return the path sep itself
+}
+
+string FilenameFromPathOrPath(const string &path) {
+  return FilenameFromPathOrDefault(path, path);
+}
+
+string FilenameFromPath(const string &path) {
+  return FilenameFromPathOrDefault(path, "");
 }
 }  // namespace file
 }  // namespace ola

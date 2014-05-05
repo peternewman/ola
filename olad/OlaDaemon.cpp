@@ -15,7 +15,7 @@
  *
  * OlaDaemon.cpp
  * This is the main ola daemon
- * Copyright (C) 2005-2008 Simon Newton
+ * Copyright (C) 2005 Simon Newton
  */
 
 #include <errno.h>
@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifdef WIN32
+#ifdef _WIN32
 #include <Shlobj.h>
 #endif
 #include <string>
@@ -33,6 +33,7 @@
 #include "ola/Logging.h"
 #include "ola/base/Credentials.h"
 #include "ola/base/Flags.h"
+#include "ola/file/Util.h"
 #include "ola/network/SocketAddress.h"
 #include "ola/stl/STLUtils.h"
 
@@ -186,12 +187,12 @@ string OlaDaemon::DefaultConfigDir() {
     if (!GetPasswdUID(uid, &passwd_entry))
       return "";
 
-    return passwd_entry.pw_dir + "/" + OLA_CONFIG_DIR;
+    return passwd_entry.pw_dir + ola::file::PATH_SEPARATOR + OLA_CONFIG_DIR;
   } else {
-#ifdef WIN32
+#ifdef _WIN32
     char path[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path))) {
-      return string(path) + "\\" + OLA_CONFIG_DIR;
+      return string(path) + ola::file::PATH_SEPARATOR + OLA_CONFIG_DIR;
     } else {
       return "";
     }

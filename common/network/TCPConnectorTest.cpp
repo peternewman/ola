@@ -51,7 +51,6 @@ using std::string;
 // used to set a timeout which aborts the tests
 static const int CONNECT_TIMEOUT_IN_MS = 500;
 static const int ABORT_TIMEOUT_IN_MS = 1000;
-static const int SERVER_PORT = 9010;
 
 class TCPConnectorTest: public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TCPConnectorTest);
@@ -266,7 +265,7 @@ void TCPConnectorTest::AcceptedConnection(TCPSocket *new_socket) {
  */
 void TCPConnectorTest::OnConnect(int fd, int error) {
   if (error) {
-    std::stringstream str;
+    std::ostringstream str;
     str << "Failed to connect: " << strerror(error);
     OLA_ASSERT_EQ_MSG(0, error, str.str());
     m_ss->Terminate();
