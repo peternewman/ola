@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include <ola/base/Macro.h>
+#include <ola/web/Json.h>
 #include <string>
 
 namespace ola {
@@ -77,7 +78,12 @@ class JsonHandlerInterface {
   virtual void Number(int32_t value) = 0;
   virtual void Number(uint64_t value) = 0;
   virtual void Number(int64_t value) = 0;
-  virtual void Number(long double value) = 0;
+
+  // MinGW struggles with long doubles
+  // http://mingw.5.n7.nabble.com/Strange-behaviour-of-gcc-4-8-1-with-long-double-td32949.html
+  // To avoid this, and to keep as many significant bits as possible we keep
+  // the components separate. See JsonDoubleValue for details.
+  virtual void Number(const JsonDoubleValue::DoubleRepresentation &rep) = 0;
 
   /**
    * @brief Called when a bool is encounted.
@@ -144,7 +150,7 @@ class NullHandler : public JsonHandlerInterface {
   virtual void Number(int32_t) {}
   virtual void Number(uint64_t) {}
   virtual void Number(int64_t) {}
-  virtual void Number(long double) {}
+  virtual void Number(const JsonDoubleValue::DoubleRepresentation&) {}
   virtual void Bool(bool value) { (void) value; }
   virtual void Null() {}
   virtual void OpenArray() {}

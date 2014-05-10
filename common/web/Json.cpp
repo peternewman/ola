@@ -19,6 +19,7 @@
  * Copyright (C) 2012 Simon Newton
  */
 
+#include <math.h>
 #include <string>
 #include "ola/StringUtils.h"
 #include "ola/stl/STLUtils.h"
@@ -65,6 +66,61 @@ void JsonUInt64Value::Accept(JsonValueVisitorInterface *visitor) const {
 
 void JsonDoubleValue::Accept(JsonValueVisitorInterface *visitor) const {
   visitor->Visit(*this);
+}
+
+JsonDoubleValue::JsonDoubleValue(double value)
+    : m_value(value) {
+  ostringstream str;
+  str << value;
+  m_as_string = str.str();
+}
+
+JsonDoubleValue::JsonDoubleValue(const DoubleRepresentation &rep) {
+  AsDouble(rep, &m_value);
+  m_as_string = AsString(rep);
+}
+
+bool JsonDoubleValue::AsDouble(const DoubleRepresentation &rep, double *out) {
+  // TODO(simon): Check the limits here.
+  double d = rep.fractional;
+  while (d > 1.0) {
+    d /= 10.0;
+  }
+  for (unsigned int i = 0; i < rep.leading_fractional_zeros; i++) {
+    d /= 10;
+  }
+
+  d += rep.full;
+  d *= pow(10, rep.exponent);
+  if (rep.is_negative && d != 0.0) {
+    d *= -1;
+  }
+  *out = d;
+  return true;
+}
+
+string JsonDoubleValue::AsString(const DoubleRepresentation &rep) {
+  // Populate the string member
+  if (rep.full == 0 && rep.fractional == 0) {
+    return "0";
+  }
+
+  ostringstream output;
+  if (rep.is_negative) {
+    output << "-";
+  }
+  output << rep.full;
+  if (rep.fractional) {
+    output << ".";
+    if (rep.leading_fractional_zeros) {
+      output << string(rep.leading_fractional_zeros, '0');
+    }
+    output << rep.fractional;
+  }
+  if (rep.exponent) {
+    output << "e" << rep.exponent;
+  }
+  return output.str();
 }
 
 JsonObject::~JsonObject() {
@@ -234,7 +290,7 @@ void JsonWriter::Visit(const JsonInt64Value &value) {
 }
 
 void JsonWriter::Visit(const JsonDoubleValue &value) {
-  *m_output << value.Value();
+  *m_output << value.ToString();
 }
 
 void JsonWriter::VisitProperty(const std::string &property,
