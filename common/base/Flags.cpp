@@ -85,6 +85,12 @@ void DisplayUsage() {
 }
 
 
+void DisplayUsageAndExit() {
+  GetRegistry()->DisplayUsage();
+  exit(ola::EXIT_USAGE);
+}
+
+
 void DisplayVersion() {
   GetRegistry()->DisplayVersion();
 }
@@ -294,6 +300,12 @@ void FlagRegistry::GenManPage() {
   strftime(date_str, arraysize(date_str), "%B %Y", &loctime);
 
   string exe_name = ola::file::FilenameFromPathOrPath(m_argv0);
+
+  if (0 != exe_name.compare(m_argv0)) {
+    // Strip lt- off the start if present, in case we're generating the man
+    // page from a libtool wrapper script for the exe
+    ola::StripPrefix(&exe_name, "lt-");
+  }
 
   cout << ".TH " << exe_name << " 1 \"" << date_str << "\"" << endl;
   cout << ".SH NAME" << endl;
