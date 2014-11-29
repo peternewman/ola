@@ -1,0 +1,27 @@
+environment:
+  matrix:
+  - Build: mingw
+
+install:
+- ps: |
+      mingw-get.exe install msys-coreutils mingw32-base mingw32-pthreads-w32 msys-wget
+
+before_build:
+  - ps: |
+        $env:CPPFLAGS = "-I/usr/local/include"
+        $env:LDFLAGS = "-L/usr/local/lib"
+        $env:PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
+
+build_script:
+  - ps: |
+      autoreconf -i -f
+      ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
+      make
+
+test_script:
+  - ps: |
+      make check
+
+on_failure:
+  - appveyor PushArtifact test-suite.log
+  - appveyor AddTest test
