@@ -3,7 +3,7 @@ environment:
     - Build: mingw
 
 install:
-  - set PATH=%PATH%;C:\MinGW\bin
+  - set PATH=%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin
   #These are already installed: mingw32-base msys-coreutils msys-wget
   - C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32
 
@@ -13,7 +13,7 @@ before_build:
   - set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
 
 build_script:
-  - C:\MinGW\msys\1.0\bin\sh mount C:/MinGW /mingw
+  - C:\MinGW\msys\1.0\bin\sh C:\MinGW\msys\1.0\bin\mount C:\MinGW /mingw
   - C:\MinGW\msys\1.0\bin\sh C:\MinGW\bin\autoreconf -i -f
   - C:\MinGW\msys\1.0\bin\sh ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
   - C:\MinGW\bin\make.exe
