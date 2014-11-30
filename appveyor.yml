@@ -10,7 +10,6 @@ install:
       # Remove path to Git bin directory from PATH because it breaks MinGW config.
       $env:PATH = $env:PATH -replace "C:\\Program Files \(x86\)\\Git\\bin",""
       $env:PATH = $env:PATH -replace "C:\\Program Files\\Git\\bin",""
-  - sh: sh mingw-get-info installed
 
 before_build:
   - set CPPFLAGS="-I/usr/local/include"
