@@ -1,13 +1,12 @@
 environment:
   matrix:
-  - Build: mingw
+    - Build: mingw
 
 install:
   - set PATH=%PATH%;C:\MinGW\bin
   - C:\MinGW\bin\mingw-get.exe --help
-  - ps: |
-      C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32-dev
-      #These are already installed: mingw32-base msys-coreutils msys-wget
+  #These are already installed: mingw32-base msys-coreutils msys-wget
+  - C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32-dev
 
 before_build:
   - set CPPFLAGS="-I/usr/local/include"
@@ -15,14 +14,12 @@ before_build:
   - set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
 
 build_script:
-  - ps: |
-      autoreconf -i -f
-      ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
-      make
+  - autoreconf -i -f
+  - ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
+  - make
 
 test_script:
-  - ps: |
-      make check
+  - make check
 
 on_failure:
   - appveyor PushArtifact test-suite.log
