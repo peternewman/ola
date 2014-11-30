@@ -12,9 +12,9 @@ install:
       $env:PATH = $env:PATH -replace "C:\\Program Files\\Git\\bin",""
 
 before_build:
-  - set CPPFLAGS="-I/usr/local/include"
-  - set LDFLAGS = "-L/usr/local/lib"
-  - set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
+  #- set CPPFLAGS="-I/usr/local/include"
+  #- set LDFLAGS = "-L/usr/local/lib"
+  #- set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
 
 build_script:
   - echo %PATH%
