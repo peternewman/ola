@@ -6,6 +6,12 @@ install:
   - set PATH=%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin
   #These are already installed: mingw32-base msys-coreutils msys-wget
   - C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32
+  - echo %PATH%
+  - ps: |
+      # Remove path to Git bin directory from PATH because it breaks MinGW config.
+      $env:PATH = $env:PATH -replace "C:\\Program Files \(x86\)\\Git\\bin",""
+      $env:PATH = $env:PATH -replace "C:\\Program Files\\Git\\bin",""
+  - sh: echo %PATH%
 
 before_build:
   - set CPPFLAGS="-I/usr/local/include"
@@ -13,6 +19,7 @@ before_build:
   - set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
 
 build_script:
+  - echo %PATH%
   - C:\MinGW\msys\1.0\bin\sh C:\MinGW\msys\1.0\bin\mount C:\MinGW /mingw
   - C:\MinGW\msys\1.0\bin\sh C:\MinGW\bin\autoreconf -i -f
   - C:\MinGW\msys\1.0\bin\sh ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
