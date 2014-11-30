@@ -3,15 +3,16 @@ environment:
   - Build: mingw
 
 install:
-- ps: |
-      C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32
+  - set PATH=%PATH%;C:\MinGW\bin
+  - C:\MinGW\bin\mingw-get.exe --help
+  - ps: |
+      C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32-dev
       #These are already installed: mingw32-base msys-coreutils msys-wget
 
 before_build:
-  - ps: |
-        $env:CPPFLAGS = "-I/usr/local/include"
-        $env:LDFLAGS = "-L/usr/local/lib"
-        $env:PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
+  - set CPPFLAGS="-I/usr/local/include"
+  - set LDFLAGS = "-L/usr/local/lib"
+  - set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
 
 build_script:
   - ps: |
