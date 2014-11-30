@@ -4,8 +4,8 @@ environment:
 
 install:
 - ps: |
-      dir C:\MinGW\
-      C:\MinGW\mingw32-get.exe install msys-coreutils mingw32-base mingw32-pthreads-w32 msys-wget
+      dir C:\MinGW\bin\
+      C:\MinGW\bin\mingw32-get.exe install msys-coreutils mingw32-base mingw32-pthreads-w32 msys-wget
 
 before_build:
   - ps: |
