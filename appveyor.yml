@@ -6,7 +6,7 @@ install:
   - set PATH=%PATH%;C:\MinGW\bin
   - C:\MinGW\bin\mingw-get.exe --help
   #These are already installed: mingw32-base msys-coreutils msys-wget
-  - C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32-dev
+  - C:\MinGW\bin\mingw-get.exe install mingw32-pthreads-w32
 
 before_build:
   - set CPPFLAGS="-I/usr/local/include"
@@ -14,7 +14,8 @@ before_build:
   - set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
 
 build_script:
-  - autoreconf -i -f
+  - set PATH=%PATH%;C:\MinGW\bin
+  - C:\MinGW\bin\autoreconf -i -f
   - ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
   - make
 
