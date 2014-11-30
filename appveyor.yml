@@ -13,13 +13,12 @@ before_build:
   - set PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"
 
 build_script:
-  - dir C:\MinGW\bin\autoreconf
-  - C:\MinGW\bin\autoreconf -i -f
-  - ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
-  - make
+  - C:\MinGW\msys\1.0\bin\sh C:\MinGW\bin\autoreconf -i -f
+  - C:\MinGW\msys\1.0\bin\sh ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
+  - C:\MinGW\bin\make.exe
 
 test_script:
-  - make check
+  C:\MinGW\bin\make.exe check
 
 on_failure:
   - appveyor PushArtifact test-suite.log
