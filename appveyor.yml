@@ -18,28 +18,37 @@ install:
   # uuid
   - appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz
   - tar -zxvf uuid-1.6.2.tar.gz
-  - dir
   - cd uuid-1.6.2
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   # Hack to work around shtool on Windows not quoting enough
   - C:\MinGW\msys\1.0\bin\make.exe install || true
-  ## protobuf
-  #- cd ..
+  # protobuf
+  - cd ..
   #- appveyor DownloadFile https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
-  ## Need to fix this:
+  # Need to fix this:
   #- tar -zxvf protobuf-2.5.0.tar.gz
-  #- dir
-  #- cd protobuf-2.5.0
-  #- sh ./configure
-  #- C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
+  - appveyor DownloadFile https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.tar.gz
+  - tar -zxvf protobuf-2.6.1.tar.gz
+  - dir
+  - cd protobuf-2.6.1
+  - sh ./configure
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
   - cd ..
   - appveyor DownloadFile http://sourceforge.net/projects/cppunit/files/cppunit/1.12.1/cppunit-1.12.1.tar.gz/download -FileName cppunit-1.12.1.tar.gz
   - tar -zxvf cppunit-1.12.1.tar.gz
-  - dir
   - cd cppunit-1.12.1
+  - sh ./configure
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
+  # liblo - Move this below libmicrohttpd when that's working
+  - cd ..
+  - appveyor DownloadFile http://sourceforge.net/projects/liblo/files/liblo/0.28/liblo-0.28.tar.gz/download -FileName liblo-0.28.tar.gz
+  - tar -zxvf liblo-0.28.tar.gz
+  - dir
+  - cd liblo-0.28
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
