@@ -35,22 +35,22 @@ install:
   #- sh ./configure
   #- C:\MinGW\msys\1.0\bin\make.exe
   #- C:\MinGW\msys\1.0\bin\make.exe install
-  # cppunit
-  - cd ..
-  - appveyor DownloadFile http://sourceforge.net/projects/cppunit/files/cppunit/1.12.1/cppunit-1.12.1.tar.gz/download -FileName cppunit-1.12.1.tar.gz
-  - tar -zxvf cppunit-1.12.1.tar.gz
-  - cd cppunit-1.12.1
-  - sh ./configure
-  - C:\MinGW\msys\1.0\bin\make.exe
-  - C:\MinGW\msys\1.0\bin\make.exe install
-  # liblo - Move this below libmicrohttpd when that's working
-  - cd ..
-  - appveyor DownloadFile http://sourceforge.net/projects/liblo/files/liblo/0.28/liblo-0.28.tar.gz/download -FileName liblo-0.28.tar.gz
-  - tar -zxvf liblo-0.28.tar.gz
-  - cd liblo-0.28
-  - sh ./configure
-  - C:\MinGW\msys\1.0\bin\make.exe
-  - C:\MinGW\msys\1.0\bin\make.exe install
+  ## cppunit
+  #- cd ..
+  #- appveyor DownloadFile http://sourceforge.net/projects/cppunit/files/cppunit/1.12.1/cppunit-1.12.1.tar.gz/download -FileName cppunit-1.12.1.tar.gz
+  #- tar -zxvf cppunit-1.12.1.tar.gz
+  #- cd cppunit-1.12.1
+  #- sh ./configure
+  #- C:\MinGW\msys\1.0\bin\make.exe
+  #- C:\MinGW\msys\1.0\bin\make.exe install
+  ## liblo - Move this below libmicrohttpd when that's working
+  #- cd ..
+  #- appveyor DownloadFile http://sourceforge.net/projects/liblo/files/liblo/0.28/liblo-0.28.tar.gz/download -FileName liblo-0.28.tar.gz
+  #- tar -zxvf liblo-0.28.tar.gz
+  #- cd liblo-0.28
+  #- sh ./configure
+  #- C:\MinGW\msys\1.0\bin\make.exe
+  #- C:\MinGW\msys\1.0\bin\make.exe install
   ## libmicrohttpd
   #- cd ..
   #- appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz
