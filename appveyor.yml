@@ -1,3 +1,5 @@
+shallow_clone: true
+
 environment:
   matrix:
     - Build: mingw
@@ -23,16 +25,16 @@ install:
   - C:\MinGW\msys\1.0\bin\make.exe
   # Hack to work around shtool on Windows not quoting enough
   - C:\MinGW\msys\1.0\bin\make.exe install || true
-  # protobuf
-  - cd ..
-  - appveyor DownloadFile https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.zip
-  # The tar doesn't extract properly, so grab the zip and use 7z
-  - 7z x protobuf-2.6.1.zip
-  - dir
-  - cd protobuf-2.6.1
-  - sh ./configure
-  - C:\MinGW\msys\1.0\bin\make.exe
-  - C:\MinGW\msys\1.0\bin\make.exe install
+  ## protobuf
+  #- cd ..
+  #- appveyor DownloadFile https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.zip
+  ## The tar doesn't extract properly, so grab the zip and use 7z
+  #- 7z x protobuf-2.6.1.zip
+  #- dir
+  #- cd protobuf-2.6.1
+  #- sh ./configure
+  #- C:\MinGW\msys\1.0\bin\make.exe
+  #- C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
   - cd ..
   - appveyor DownloadFile http://sourceforge.net/projects/cppunit/files/cppunit/1.12.1/cppunit-1.12.1.tar.gz/download -FileName cppunit-1.12.1.tar.gz
@@ -82,6 +84,6 @@ on_failure:
 
 cache:
   - C:\projects\libs\uuid-1.6.2
-  - C:\projects\libs\protobuf-2.6.1
+  #- C:\projects\libs\protobuf-2.6.1
   - C:\projects\libs\cppunit-1.12.1
   - C:\projects\libs\liblo-0.28
