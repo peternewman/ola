@@ -23,18 +23,16 @@ install:
   - C:\MinGW\msys\1.0\bin\make.exe
   # Hack to work around shtool on Windows not quoting enough
   - C:\MinGW\msys\1.0\bin\make.exe install || true
-  ## protobuf
-  #- cd ..
-  ##- appveyor DownloadFile https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
-  ## Need to fix this:
-  ##- tar -zxvf protobuf-2.5.0.tar.gz
-  #- appveyor DownloadFile https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.tar.gz
-  #- tar -zxvf protobuf-2.6.1.tar.gz
-  #- dir
-  #- cd protobuf-2.6.1
-  #- sh ./configure
-  #- C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
+  # protobuf
+  - cd ..
+  - appveyor DownloadFile https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.zip
+  # The tar doesn't extract properly, so grab the zip and use 7z
+  - 7z x protobuf-2.6.1.zip
+  - dir
+  - cd protobuf-2.6.1
+  - sh ./configure
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
   - cd ..
   - appveyor DownloadFile http://sourceforge.net/projects/cppunit/files/cppunit/1.12.1/cppunit-1.12.1.tar.gz/download -FileName cppunit-1.12.1.tar.gz
