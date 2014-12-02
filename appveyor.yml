@@ -4,9 +4,9 @@ environment:
 
 install:
   - set PATH=%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin
-  - dir C:\MinGW\msys\1.0\bin
+  #- dir C:\MinGW\msys\1.0\bin
   #These are already installed: mingw32-base msys-coreutils msys-wget
-  - mingw-get.exe install mingw32-pthreads-w32 mingw32-gcc
+  - mingw-get.exe install mingw32-pthreads-w32
   - choco install pkgconfiglite
   - ps: |
       # Remove path to Git bin directory from PATH because it breaks MinGW config.
@@ -45,7 +45,6 @@ install:
   - cd ..
   - appveyor DownloadFile http://sourceforge.net/projects/liblo/files/liblo/0.28/liblo-0.28.tar.gz/download -FileName liblo-0.28.tar.gz
   - tar -zxvf liblo-0.28.tar.gz
-  - dir
   - cd liblo-0.28
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
@@ -80,3 +79,8 @@ on_failure:
   - appveyor PushArtifact config.log
   - appveyor PushArtifact test-suite.log
   - appveyor AddTest test
+
+cache:
+  - C:\projects\libs\uuid-1.6.2
+  - C:\projects\libs\cppunit-1.12.1
+  - C:\projects\libs\liblo-0.28
