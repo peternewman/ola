@@ -23,7 +23,7 @@ install:
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   # Hack to work around shtool on Windows not quoting enough
-  - C:\MinGW\msys\1.0\bin\make.exe install || echo "make install failed"
+  - C:\MinGW\msys\1.0\bin\make.exe install || true
   # protobuf
   - cd ..\libs
   - appveyor DownloadFile https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
