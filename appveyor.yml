@@ -20,16 +20,16 @@ install:
   - dir
   - cd uuid-1.6.2
   - sh ./configure
-  - sh C:\MinGW\msys\1.0\bin\make.exe
-  - sh C:\MinGW\msys\1.0\bin\make.exe install
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
   - cd ..\libs
   - appveyor DownloadFile https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
   - tar -zxvf protobuf-2.5.0.tar.gz
   - dir
   - cd protobuf-2.5.0
   - sh ./configure
-  - sh make.exe
-  - sh make.exe install
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
 
 before_build:
   #- set CPPFLAGS="-I/usr/local/include"
@@ -40,10 +40,10 @@ build_script:
   - echo %PATH%
   - sh C:\MinGW\bin\autoreconf -i -f
   - sh ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
-  - sh C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe
 
 test_script:
-  - sh make.exe check
+  - C:\MinGW\msys\1.0\bin\make.exe check
 
 on_failure:
   - appveyor PushArtifact config.log
