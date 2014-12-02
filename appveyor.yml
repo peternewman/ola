@@ -14,8 +14,8 @@ install:
       $env:PATH = $env:PATH -replace "C:\\Program Files\\Git\\bin",""
   - sh: sh mount C:\MinGW /mingw
   - mkdir ..\libs
-  # uuid
   - cd ..\libs
+  # uuid
   - appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz
   - tar -zxvf uuid-1.6.2.tar.gz
   - dir
@@ -25,7 +25,7 @@ install:
   # Hack to work around shtool on Windows not quoting enough
   - C:\MinGW\msys\1.0\bin\make.exe install || true
   # protobuf
-  - cd ..\libs
+  - cd ..
   - appveyor DownloadFile https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
   - tar -zxvf protobuf-2.5.0.tar.gz
   - dir
@@ -34,7 +34,7 @@ install:
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
-  - cd ..\libs
+  - cd ..
   - appveyor DownloadFile http://sourceforge.net/projects/cppunit/files/cppunit/1.12.1/cppunit-1.12.1.tar.gz/download
   - tar -zxvf cppunit-1.12.1.tar.gz
   - dir
@@ -43,7 +43,7 @@ install:
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
   # libmicrohttpd
-  - cd ..\libs
+  - cd ..
   - appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz
   - tar -zxvf libmicrohttpd-0.9.38.tar.gz
   - dir
@@ -51,6 +51,8 @@ install:
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
+  # All done, get back to the right place
+  - cd ../ola
 
 before_build:
   #- set CPPFLAGS="-I/usr/local/include"
