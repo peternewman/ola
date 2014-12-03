@@ -8,8 +8,8 @@ install:
   - set PATH=%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin
   #- dir C:\MinGW\msys\1.0\bin
   #These are already installed: mingw32-base msys-coreutils msys-wget
-  #- mingw-get.exe install mingw32-pthreads-w32
-  #- choco install pkgconfiglite
+  - mingw-get.exe install mingw32-pthreads-w32
+  - choco install pkgconfiglite
   - ps: |
       # Remove path to Git bin directory from PATH because it breaks MinGW config.
       $env:PATH = $env:PATH -replace "C:\\Program Files \(x86\)\\Git\\bin",""
@@ -17,45 +17,45 @@ install:
   - sh: sh mount C:\MinGW /mingw
   - IF not exist ..\libs ( mkdir ..\libs )
   - cd ..\libs
-  #- dir
+  - dir
   # uuid
-  #- IF not exist uuid-1.6.2.tar.gz ( echo No cache, downloading && appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz && tar -zxvf uuid-1.6.2.tar.gz ) ELSE ( echo Using cached download )
-  #- cd uuid-1.6.2
-  #- IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
-  #- C:\MinGW\msys\1.0\bin\make.exe
+  - IF not exist uuid-1.6.2.tar.gz ( echo No cache, downloading && appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz && tar -zxvf uuid-1.6.2.tar.gz ) ELSE ( echo Using cached download )
+  - cd uuid-1.6.2
+  - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
+  - C:\MinGW\msys\1.0\bin\make.exe
   ## Hack to work around shtool on Windows not quoting enough
-  #- C:\MinGW\msys\1.0\bin\make.exe install || true
+  - C:\MinGW\msys\1.0\bin\make.exe install || true
   # protobuf
-  #- cd ..
+  - cd ..
   # The tar doesn't extract properly, so grab the zip and use 7z
   - IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
   - dir
   - cd protobuf-2.6.1
   - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
   - C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
+  - C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
-  #- cd ..
-  #- IF not exist cppunit-1.12.1.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz && tar -zxvf cppunit-1.12.1.tar.gz ) ELSE ( echo Using cached download )
-  #- cd cppunit-1.12.1
-  #- IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
-  #- C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
+  - cd ..
+  - IF not exist cppunit-1.12.1.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz && tar -zxvf cppunit-1.12.1.tar.gz ) ELSE ( echo Using cached download )
+  - cd cppunit-1.12.1
+  - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
   # libmicrohttpd
-  #- cd ..
-  #- IF not exist libmicrohttpd-0.9.38.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz && tar -zxvf libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached download )
-  #- dir
-  #- cd libmicrohttpd-0.9.38
-  #- IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
+  - cd ..
+  - IF not exist libmicrohttpd-0.9.38.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz && tar -zxvf libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached download )
+  - dir
+  - cd libmicrohttpd-0.9.38
+  - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
   ##- C:\MinGW\msys\1.0\bin\make.exe
   ##- C:\MinGW\msys\1.0\bin\make.exe install
   # liblo
-  #- cd ..
-  #- IF not exist liblo-0.28.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz && tar -zxvf liblo-0.28.tar.gz ) ELSE ( echo Using cached download )
-  #- cd liblo-0.28
-  #- IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
-  #- C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
+  - cd ..
+  - IF not exist liblo-0.28.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz && tar -zxvf liblo-0.28.tar.gz ) ELSE ( echo Using cached download )
+  - cd liblo-0.28
+  - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
   ## All done, get back to the right place
   #- cd ../ola
 
