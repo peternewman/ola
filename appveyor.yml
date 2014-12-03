@@ -31,7 +31,8 @@ install:
   - IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
   - dir
   - cd protobuf-2.6.1
-  - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
+  #- IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
+  - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
