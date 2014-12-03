@@ -41,21 +41,21 @@ install:
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
-  # liblo - Move this below libmicrohttpd when that's working
+  # libmicrohttpd
+  - cd ..
+  - IF not exist libmicrohttpd-0.9.38.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz && tar -zxvf libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached download )
+  - dir
+  - cd libmicrohttpd-0.9.38
+  #- sh ./configure
+  #- C:\MinGW\msys\1.0\bin\make.exe
+  #- C:\MinGW\msys\1.0\bin\make.exe install
+  # liblo
   - cd ..
   - IF not exist liblo-0.28.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz && tar -zxvf liblo-0.28.tar.gz ) ELSE ( echo Using cached download )
   - cd liblo-0.28
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
-  ## libmicrohttpd
-  #- cd ..
-  #- IF not exist libmicrohttpd-0.9.38.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz && tar -zxvf libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached download )
-  #- dir
-  #- cd libmicrohttpd-0.9.38
-  #- sh ./configure
-  #- C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
   ## All done, get back to the right place
   #- cd ../ola
 
@@ -71,7 +71,7 @@ build_script:
   #- C:\MinGW\msys\1.0\bin\make.exe
 
 test_script:
-  #- C:\MinGW\msys\1.0\bin\make.exe check
+  - C:\MinGW\msys\1.0\bin\make.exe check
 
 on_failure:
   - appveyor PushArtifact config.log
