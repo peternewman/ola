@@ -71,11 +71,12 @@ build_script:
   #- C:\MinGW\msys\1.0\bin\make.exe
 
 test_script:
-  - C:\MinGW\msys\1.0\bin\make.exe check
+  #- C:\MinGW\msys\1.0\bin\make.exe check
 
 on_failure:
   - appveyor PushArtifact config.log
   - appveyor PushArtifact test-suite.log
+  - appveyor PushArtifact src/test-suite.log
   #- appveyor AddTest test
 
 cache:
