@@ -28,6 +28,7 @@ install:
   # protobuf
   - cd ..
   # The tar doesn't extract properly, so grab the zip and use 7z
+  - del /F protobuf-2.6.1
   - IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
   - dir
   - cd protobuf-2.6.1
@@ -87,7 +88,7 @@ cache:
   - C:\projects\libs\libmicrohttpd-0.9.38.tar.gz
   - C:\projects\libs\liblo-0.28.tar.gz
   - C:\projects\libs\uuid-1.6.2
-  - C:\projects\libs\protobuf-2.6.1
+  #- C:\projects\libs\protobuf-2.6.1
   - C:\projects\libs\cppunit-1.12.1
   - C:\projects\libs\libmicrohttpd-0.9.38
   - C:\projects\libs\liblo-0.28
