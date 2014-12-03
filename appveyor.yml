@@ -15,11 +15,10 @@ install:
       $env:PATH = $env:PATH -replace "C:\\Program Files \(x86\)\\Git\\bin",""
       $env:PATH = $env:PATH -replace "C:\\Program Files\\Git\\bin",""
   - sh: sh mount C:\MinGW /mingw
-  - mkdir ..\libs
+  - IF not exist ..\libs ( mkdir ..\libs )
   - cd ..\libs
   # uuid
-  - appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz
-  - tar -zxvf uuid-1.6.2.tar.gz
+  - IF not exist uuid-1.6.2.tar.gz ( appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz && tar -zxvf uuid-1.6.2.tar.gz ) ELSE ( echo Using cached download )
   - cd uuid-1.6.2
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
@@ -27,9 +26,8 @@ install:
   - C:\MinGW\msys\1.0\bin\make.exe install || true
   ## protobuf
   #- cd ..
-  #- appveyor DownloadFile https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.zip
   ## The tar doesn't extract properly, so grab the zip and use 7z
-  #- 7z x protobuf-2.6.1.zip
+  #- IF not exist protobuf-2.6.1.zip ( appveyor DownloadFile https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.zip && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
   #- dir
   #- cd protobuf-2.6.1
   #- sh ./configure
@@ -37,24 +35,21 @@ install:
   #- C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
   - cd ..
-  - appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz
-  - tar -zxvf cppunit-1.12.1.tar.gz
+  - IF not exist cppunit-1.12.1.tar.gz ( appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz && tar -zxvf cppunit-1.12.1.tar.gz ) ELSE ( echo Using cached download )
   - cd cppunit-1.12.1
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
   # liblo - Move this below libmicrohttpd when that's working
   - cd ..
-  - appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz
-  - tar -zxvf liblo-0.28.tar.gz
+  - IF not exist liblo-0.28.tar.gz ( appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz && tar -zxvf liblo-0.28.tar.gz ) ELSE ( echo Using cached download )
   - cd liblo-0.28
   - sh ./configure
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
   ## libmicrohttpd
   #- cd ..
-  #- appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz
-  #- tar -zxvf libmicrohttpd-0.9.38.tar.gz
+  #- IF not exist libmicrohttpd-0.9.38.tar.gz ( appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz && tar -zxvf libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached download )
   #- dir
   #- cd libmicrohttpd-0.9.38
   #- sh ./configure
@@ -83,6 +78,11 @@ on_failure:
   #- appveyor AddTest test
 
 cache:
+  - C:\projects\libs\uuid-1.6.2.tar.gz
+  - C:\projects\libs\protobuf-2.6.1.zip
+  - C:\projects\libs\cppunit-1.12.1.tar.gz
+  - C:\projects\libs\libmicrohttpd-0.9.38.tar.gz
+  - C:\projects\libs\liblo-0.28.tar.gz
   - C:\projects\libs\uuid-1.6.2
   - C:\projects\libs\protobuf-2.6.1
   - C:\projects\libs\cppunit-1.12.1
