@@ -19,7 +19,8 @@ install:
   - cd ..\libs
   - dir
   # uuid
-  - IF not exist uuid-1.6.2.tar.gz ( echo No cache, downloading && appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz && tar -zxvf uuid-1.6.2.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist uuid-1.6.2.tar.gz ( echo No cache, downloading && appveyor DownloadFile https://gnome-build-stage-1.googlecode.com/files/uuid-1.6.2.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist uuid-1.6.2 ( echo No folder, extracting && tar -zxvf uuid-1.6.2.tar.gz ) ELSE ( echo Using cached folder )
   - cd uuid-1.6.2
   - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
   - C:\MinGW\msys\1.0\bin\make.exe
@@ -28,8 +29,8 @@ install:
   # protobuf
   - cd ..
   # The tar doesn't extract properly, so grab the zip and use 7z
-  - del /F protobuf-2.6.1
-  - IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
+  - IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
+  - IF not exist protobuf-2.6.1 ( echo No folder, extracting && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached folder )
   - dir
   - cd protobuf-2.6.1
   #- IF not exist Makefile ( echo No Makefile, configuring and making && sh ./configure && C:\MinGW\msys\1.0\bin\make.exe ) ELSE ( echo Makefile already exists, not bothering to configure or make )
@@ -38,14 +39,16 @@ install:
   - C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
   - cd ..
-  - IF not exist cppunit-1.12.1.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz && tar -zxvf cppunit-1.12.1.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist cppunit-1.12.1.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist cppunit-1.12.1 ( echo No folder, extracting && tar -zxvf cppunit-1.12.1.tar.gz ) ELSE ( echo Using cached folder )
   - cd cppunit-1.12.1
   - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
   # libmicrohttpd
   - cd ..
-  - IF not exist libmicrohttpd-0.9.38.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz && tar -zxvf libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist libmicrohttpd-0.9.38.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist libmicrohttpd-0.9.38 ( echo No folder, extracting && tar -zxvf libmicrohttpd-0.9.38.tar.gz ) ELSE ( echo Using cached folder )
   - dir
   - cd libmicrohttpd-0.9.38
   - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
@@ -53,7 +56,8 @@ install:
   ##- C:\MinGW\msys\1.0\bin\make.exe install
   # liblo
   - cd ..
-  - IF not exist liblo-0.28.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz && tar -zxvf liblo-0.28.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist liblo-0.28.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz ) ELSE ( echo Using cached download )
+  - IF not exist liblo-0.28 ( echo No folder, extracting && tar -zxvf liblo-0.28.tar.gz ) ELSE ( echo Using cached folder )
   - cd liblo-0.28
   - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
   - C:\MinGW\msys\1.0\bin\make.exe
