@@ -26,7 +26,7 @@ install:
   ## Hack to work around shtool on Windows not quoting enough
   #- C:\MinGW\msys\1.0\bin\make.exe install || true
   # protobuf
-  - cd ..
+  #- cd ..
   # The tar doesn't extract properly, so grab the zip and use 7z
   - IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
   - dir
