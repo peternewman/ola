@@ -35,22 +35,22 @@ install:
   #- sh ./configure
   #- C:\MinGW\msys\1.0\bin\make.exe
   #- C:\MinGW\msys\1.0\bin\make.exe install
-  ## cppunit
-  #- cd ..
-  #- appveyor DownloadFile http://sourceforge.net/projects/cppunit/files/cppunit/1.12.1/cppunit-1.12.1.tar.gz/download -FileName cppunit-1.12.1.tar.gz
-  #- tar -zxvf cppunit-1.12.1.tar.gz
-  #- cd cppunit-1.12.1
-  #- sh ./configure
-  #- C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
-  ## liblo - Move this below libmicrohttpd when that's working
-  #- cd ..
-  #- appveyor DownloadFile http://sourceforge.net/projects/liblo/files/liblo/0.28/liblo-0.28.tar.gz/download -FileName liblo-0.28.tar.gz
-  #- tar -zxvf liblo-0.28.tar.gz
-  #- cd liblo-0.28
-  #- sh ./configure
-  #- C:\MinGW\msys\1.0\bin\make.exe
-  #- C:\MinGW\msys\1.0\bin\make.exe install
+  # cppunit
+  - cd ..
+  - appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz
+  - tar -zxvf cppunit-1.12.1.tar.gz
+  - cd cppunit-1.12.1
+  - sh ./configure
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
+  # liblo - Move this below libmicrohttpd when that's working
+  - cd ..
+  - appveyor DownloadFile http://downloads.sourceforge.net/project/liblo/liblo/0.28/liblo-0.28.tar.gz
+  - tar -zxvf liblo-0.28.tar.gz
+  - cd liblo-0.28
+  - sh ./configure
+  - C:\MinGW\msys\1.0\bin\make.exe
+  - C:\MinGW\msys\1.0\bin\make.exe install
   ## libmicrohttpd
   #- cd ..
   #- appveyor DownloadFile http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.38.tar.gz
@@ -84,6 +84,7 @@ on_failure:
 
 cache:
   - C:\projects\libs\uuid-1.6.2
-  #- C:\projects\libs\protobuf-2.6.1
+  - C:\projects\libs\protobuf-2.6.1
   - C:\projects\libs\cppunit-1.12.1
+  - C:\projects\libs\libmicrohttpd-0.9.38
   - C:\projects\libs\liblo-0.28
