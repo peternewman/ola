@@ -10,6 +10,7 @@ install:
   #These are already installed: mingw32-base msys-coreutils msys-wget
   - mingw-get.exe install mingw32-pthreads-w32
   - choco install pkgconfiglite
+  - nuget install protobuf
   - ps: |
       # Remove path to Git bin directory from PATH because it breaks MinGW config.
       $env:PATH = $env:PATH -replace "C:\\Program Files \(x86\)\\Git\\bin",""
@@ -26,17 +27,17 @@ install:
   - C:\MinGW\msys\1.0\bin\make.exe
   ## Hack to work around shtool on Windows not quoting enough
   - C:\MinGW\msys\1.0\bin\make.exe install || true
-  # protobuf
-  - cd ..
-  # The tar doesn't extract properly, so grab the zip and use 7z
-  - IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
-  - IF not exist protobuf-2.6.1 ( echo No folder, extracting && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached folder )
-  - dir
-  - cd protobuf-2.6.1
-  #- IF not exist Makefile ( echo No Makefile, configuring and making && sh ./configure && C:\MinGW\msys\1.0\bin\make.exe ) ELSE ( echo Makefile already exists, not bothering to configure or make )
-  - sh ./configure
-  - C:\MinGW\msys\1.0\bin\make.exe
-  - C:\MinGW\msys\1.0\bin\make.exe install
+  ## protobuf
+  #- cd ..
+  ## The tar doesn't extract properly, so grab the zip and use 7z
+  #- IF not exist protobuf-2.6.1.zip ( echo No cache, downloading && appveyor DownloadFile https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.zip ) ELSE ( echo Using cached download )
+  #- IF not exist protobuf-2.6.1 ( echo No folder, extracting && 7z x protobuf-2.6.1.zip ) ELSE ( echo Using cached folder )
+  #- dir
+  #- cd protobuf-2.6.1
+  ##- IF not exist Makefile ( echo No Makefile, configuring and making && sh ./configure && C:\MinGW\msys\1.0\bin\make.exe ) ELSE ( echo Makefile already exists, not bothering to configure or make )
+  #- sh ./configure
+  #- C:\MinGW\msys\1.0\bin\make.exe
+  #- C:\MinGW\msys\1.0\bin\make.exe install
   # cppunit
   - cd ..
   - IF not exist cppunit-1.12.1.tar.gz ( echo No cache, downloading && appveyor DownloadFile http://downloads.sourceforge.net/project/cppunit/cppunit/1.12.1/cppunit-1.12.1.tar.gz ) ELSE ( echo Using cached download )
@@ -72,9 +73,9 @@ before_build:
 
 build_script:
   - echo %PATH%
-  #- sh C:\MinGW\bin\autoreconf -i -f
-  #- sh ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
-  #- C:\MinGW\msys\1.0\bin\make.exe
+  - sh C:\MinGW\bin\autoreconf -i -f
+  - sh ./configure --enable-python-libs --disable-all-plugins --enable-artnet --enable-dummy --enable-espnet --enable-kinet --enable-opendmx --enable-osc --enable-pathport --enable-sandnet --enable-shownet
+  - C:\MinGW\msys\1.0\bin\make.exe
 
 test_script:
   #- C:\MinGW\msys\1.0\bin\make.exe check
