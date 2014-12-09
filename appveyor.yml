@@ -63,8 +63,8 @@ install:
   - IF not exist Makefile ( echo No Makefile, configuring && sh ./configure ) ELSE ( echo Makefile already exists, not bothering to configure )
   - C:\MinGW\msys\1.0\bin\make.exe
   - C:\MinGW\msys\1.0\bin\make.exe install
-  ## All done, get back to the right place
-  #- cd ../ola
+  # All done, get back to the right place
+  - cd ../ola
 
 before_build:
   #- set CPPFLAGS="-I/usr/local/include"
