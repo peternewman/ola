@@ -17,6 +17,7 @@ install:
       $env:PATH = $env:PATH -replace "C:\\Program Files \(x86\)\\Git\\bin",""
       $env:PATH = $env:PATH -replace "C:\\Program Files\\Git\\bin",""
   - sh: sh mount C:\MinGW /mingw
+  - dir C:\MinGW
   - IF not exist ..\libs ( mkdir ..\libs )
   - cd ..\libs
   - dir
@@ -29,7 +30,6 @@ install:
   ## Hack to work around shtool on Windows not quoting enough
   - C:\MinGW\msys\1.0\bin\make.exe install || true
   # Check it installed correctly/see if we can find it, it should be in /usr/local/lib/pkgconfig/
-  - sh ls /usr/local/lib/pkgconfig/
   - sh pkg-config --exists --print-errors "ossp-uuid"
   #- pkg-config --exists --print-errors "uuid"
   ## protobuf
