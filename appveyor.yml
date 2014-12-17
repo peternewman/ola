@@ -1,6 +1,8 @@
 shallow_clone: true
 
 environment:
+  global:
+    PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
   matrix:
     - Build: mingw
 
@@ -28,7 +30,6 @@ install:
   ## Hack to work around shtool on Windows not quoting enough
   - C:\MinGW\msys\1.0\bin\make.exe install || true
   # Check it installed correctly/see if we can find it, it should be in /usr/local/lib/pkgconfig/
-  - set PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
   - pkg-config --exists --print-errors "ossp-uuid"
   #- pkg-config --exists --print-errors "uuid"
   ## protobuf
