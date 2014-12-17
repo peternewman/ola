@@ -1,13 +1,12 @@
 shallow_clone: true
 
 environment:
-  global:
-    PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
   matrix:
     - Build: mingw
 
 install:
   - set PATH=%PATH%;C:\MinGW\bin;C:\MinGW\msys\1.0\bin
+  - set PKG_CONFIG_PATH=/usr/local/lib/pkgconfig;%PKG_CONFIG_PATH%
   #- dir C:\MinGW\msys\1.0\bin
   #These are already installed: mingw32-base msys-coreutils msys-wget
   - mingw-get.exe install mingw32-pthreads-w32
