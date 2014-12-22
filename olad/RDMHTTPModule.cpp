@@ -2096,8 +2096,8 @@ void RDMHTTPModule::GetSlotsHandler(
   }
 
   OLA_INFO << "Got slot response";
-	
-	(void) slot_descriptors;
+
+  (void) slot_descriptors;
 
 	/**
   * std::vector<SlotDescriptor>::const_iterator iter;
@@ -2114,11 +2114,11 @@ void RDMHTTPModule::GetSlotsHandler(
 
   OLA_INFO << "Processed all slots";
 
-  //if (info->include_descriptions) {
-  //  GetNextPersonalityDescription(response, info);
-  //} else {
+  // if (info->include_descriptions) {
+  //   GetNextPersonalityDescription(response, info);
+  // } else {
     SendSectionSlotsResponse(response, info);
-  //}
+  // }
 }
 
 
@@ -2135,7 +2135,7 @@ void RDMHTTPModule::SendSectionSlotsResponse(HTTPResponse *response,
 	/**
   * std::vector<slot_detail>::const_iterator iter;
   * for (iter = info->slots.begin(); iter != info->slots.end(); ++iter) {
-  *     stringstream str;
+  *     ostringstream str;
   *     str << iter->offset << " (" << iter->type << ", " << iter->label_id << ")";
   *     item->AddItem(str.str(), iter->offset);
   * }
