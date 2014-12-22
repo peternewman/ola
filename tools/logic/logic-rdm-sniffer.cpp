@@ -82,7 +82,7 @@ DEFINE_s_default_bool(full_rdm, r, false, "Unpack RDM parameter data.");
 DEFINE_s_default_bool(timestamp, t, false, "Include timestamps.");
 DEFINE_s_default_bool(display_dmx, d, false,
                       "Display DMX Frames. Defaults to false.");
-DEFINE_uint16(dmx_slot_limit, DMX_UNIVERSE_SIZE,
+DEFINE_uint16(dmx_slot_limit, ola::DMX_UNIVERSE_SIZE,
               "Only display the first N slots of DMX data.");
 DEFINE_uint32(sample_rate, 4000000, "Sample rate in HZ.");
 DEFINE_string(pid_location, "",
@@ -105,6 +105,7 @@ class LogicReader {
         m_pid_helper(FLAGS_pid_location.str(), 4),
         m_command_printer(&cout, &m_pid_helper) {
     }
+    ~LogicReader();
 
     void DeviceConnected(U64 device, GenericInterface *interface);
     void DeviceDisconnected(U64 device);
@@ -137,6 +138,9 @@ class LogicReader {
     void DisplayRawData(const uint8_t *data, unsigned int length);
 };
 
+LogicReader::~LogicReader() {
+  m_ss->DrainCallbacks();
+}
 
 void LogicReader::DeviceConnected(U64 device, GenericInterface *interface) {
   OLA_INFO << "Device " << device << " connected, setting sample rate to "

@@ -872,9 +872,10 @@ void RDMHTTPModule::UIDInfoHandler(HTTPResponse *response,
 /**
  * Handle the identify device response and build the json.
  */
-void RDMHTTPModule::UIDIdentifyDeviceHandler(HTTPResponse *response,
-                                       const ola::rdm::ResponseStatus &status,
-                                       bool value) {
+void RDMHTTPModule::UIDIdentifyDeviceHandler(
+    HTTPResponse *response,
+    const ola::rdm::ResponseStatus &status,
+    bool value) {
   if (CheckForRDMError(response, status))
     return;
 
@@ -1394,7 +1395,7 @@ void RDMHTTPModule::GetDeviceInfoHandler(
 /*
  * Handle the request for the product details ids.
  */
-string RDMHTTPModule::GetProductIds(const HTTPRequest *request,
+string RDMHTTPModule::GetProductIds(OLA_UNUSED const HTTPRequest *request,
                                     HTTPResponse *response,
                                     unsigned int universe_id,
                                     const UID &uid) {
@@ -1408,7 +1409,6 @@ string RDMHTTPModule::GetProductIds(const HTTPRequest *request,
                         response),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -1445,10 +1445,11 @@ void RDMHTTPModule::GetProductIdsHandler(
 /**
  * Handle the request for the Manufacturer label.
  */
-string RDMHTTPModule::GetManufacturerLabel(const HTTPRequest *request,
-                                           HTTPResponse *response,
-                                           unsigned int universe_id,
-                                           const UID &uid) {
+string RDMHTTPModule::GetManufacturerLabel(
+    OLA_UNUSED const HTTPRequest *request,
+    HTTPResponse *response,
+    unsigned int universe_id,
+    const UID &uid) {
   string error;
   m_rdm_api.GetManufacturerLabel(
       universe_id,
@@ -1461,7 +1462,6 @@ string RDMHTTPModule::GetManufacturerLabel(const HTTPRequest *request,
                         uid),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -1494,7 +1494,7 @@ void RDMHTTPModule::GetManufacturerLabelHandler(
 /**
  * Handle the request for the Device label.
  */
-string RDMHTTPModule::GetDeviceLabel(const HTTPRequest *request,
+string RDMHTTPModule::GetDeviceLabel(OLA_UNUSED const HTTPRequest *request,
                                      HTTPResponse *response,
                                      unsigned int universe_id,
                                      const UID &uid) {
@@ -1510,7 +1510,6 @@ string RDMHTTPModule::GetDeviceLabel(const HTTPRequest *request,
                         uid),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -1648,7 +1647,7 @@ void RDMHTTPModule::GetSupportedLanguagesHandler(
     HTTPResponse *response,
     unsigned int universe_id,
     const UID uid,
-    const ola::rdm::ResponseStatus &status,
+    OLA_UNUSED const ola::rdm::ResponseStatus &status,
     const vector<string> &languages) {
   string error;
   m_rdm_api.GetLanguage(
@@ -1663,7 +1662,6 @@ void RDMHTTPModule::GetSupportedLanguagesHandler(
 
   if (!error.empty())
     m_server->ServeError(response, BACKEND_DISCONNECTED_ERROR + error);
-  (void) status;
 }
 
 
@@ -1745,7 +1743,7 @@ void RDMHTTPModule::GetBootSoftwareLabelHandler(
     HTTPResponse *response,
     unsigned int universe_id,
     const UID uid,
-    const ola::rdm::ResponseStatus &status,
+    OLA_UNUSED const ola::rdm::ResponseStatus &status,
     const string &label) {
   string error;
   m_rdm_api.GetBootSoftwareVersion(
@@ -1759,7 +1757,6 @@ void RDMHTTPModule::GetBootSoftwareLabelHandler(
       &error);
   if (!error.empty())
     m_server->ServeError(response, BACKEND_DISCONNECTED_ERROR + error);
-  (void) status;
 }
 
 
@@ -1790,7 +1787,7 @@ void RDMHTTPModule::GetBootSoftwareVersionHandler(
 /**
  * Handle the request for the personality section.
  */
-string RDMHTTPModule::GetPersonalities(const HTTPRequest *request,
+string RDMHTTPModule::GetPersonalities(OLA_UNUSED const HTTPRequest *request,
                                        HTTPResponse *response,
                                        unsigned int universe_id,
                                        const UID &uid,
@@ -1818,7 +1815,6 @@ string RDMHTTPModule::GetPersonalities(const HTTPRequest *request,
                         info),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -1881,12 +1877,12 @@ void RDMHTTPModule::GetNextPersonalityDescription(HTTPResponse *response,
  * personality in the sequence, or sends the response if we have all the info.
  */
 void RDMHTTPModule::GetPersonalityLabelHandler(
-        HTTPResponse *response,
-        personality_info *info,
-        const ola::rdm::ResponseStatus &status,
-        uint8_t personality,
-        uint16_t slot_count,
-        const string &label) {
+    HTTPResponse *response,
+    personality_info *info,
+    const ola::rdm::ResponseStatus &status,
+    OLA_UNUSED uint8_t personality,
+    uint16_t slot_count,
+    const string &label) {
   string description = "";
   uint32_t slots = INVALID_PERSONALITY;
 
@@ -1906,7 +1902,6 @@ void RDMHTTPModule::GetPersonalityLabelHandler(
     info->next++;
     GetNextPersonalityDescription(response, info);
   }
-  (void) personality;
 }
 
 
@@ -1971,7 +1966,7 @@ string RDMHTTPModule::SetPersonality(const HTTPRequest *request,
 /**
  * Handle the request for the start address section.
  */
-string RDMHTTPModule::GetStartAddress(const HTTPRequest *request,
+string RDMHTTPModule::GetStartAddress(OLA_UNUSED const HTTPRequest *request,
                                       HTTPResponse *response,
                                       unsigned int universe_id,
                                       const UID &uid) {
@@ -1985,7 +1980,6 @@ string RDMHTTPModule::GetStartAddress(const HTTPRequest *request,
                         response),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -2312,7 +2306,7 @@ string RDMHTTPModule::RecordSensor(const HTTPRequest *request,
 /**
  * Handle the request for the device hours section.
  */
-string RDMHTTPModule::GetDeviceHours(const HTTPRequest *request,
+string RDMHTTPModule::GetDeviceHours(OLA_UNUSED const HTTPRequest *request,
                                      HTTPResponse *response,
                                      unsigned int universe_id,
                                      const UID &uid) {
@@ -2327,7 +2321,6 @@ string RDMHTTPModule::GetDeviceHours(const HTTPRequest *request,
                         string("Device Hours")),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -2361,10 +2354,10 @@ string RDMHTTPModule::SetDeviceHours(const HTTPRequest *request,
 /**
  * Handle the request for the lamp hours section.
  */
-string RDMHTTPModule::GetLampHours(const HTTPRequest *request,
-                                     HTTPResponse *response,
-                                     unsigned int universe_id,
-                                     const UID &uid) {
+string RDMHTTPModule::GetLampHours(OLA_UNUSED const HTTPRequest *request,
+                                   HTTPResponse *response,
+                                   unsigned int universe_id,
+                                   const UID &uid) {
   string error;
   m_rdm_api.GetLampHours(
       universe_id,
@@ -2376,7 +2369,6 @@ string RDMHTTPModule::GetLampHours(const HTTPRequest *request,
                         string("Lamp Hours")),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -2384,9 +2376,9 @@ string RDMHTTPModule::GetLampHours(const HTTPRequest *request,
  * Set the lamp hours
  */
 string RDMHTTPModule::SetLampHours(const HTTPRequest *request,
-                                    HTTPResponse *response,
-                                    unsigned int universe_id,
-                                    const UID &uid) {
+                                   HTTPResponse *response,
+                                   unsigned int universe_id,
+                                   const UID &uid) {
   string lamp_hours_str = request->GetParameter(GENERIC_UINT_FIELD);
   uint32_t lamp_hours;
 
@@ -2410,7 +2402,7 @@ string RDMHTTPModule::SetLampHours(const HTTPRequest *request,
 /**
  * Handle the request for the lamp strikes section
  */
-string RDMHTTPModule::GetLampStrikes(const HTTPRequest *request,
+string RDMHTTPModule::GetLampStrikes(OLA_UNUSED const HTTPRequest *request,
                                      HTTPResponse *response,
                                      unsigned int universe_id,
                                      const UID &uid) {
@@ -2425,7 +2417,6 @@ string RDMHTTPModule::GetLampStrikes(const HTTPRequest *request,
                         string("Lamp Strikes")),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -2459,7 +2450,7 @@ string RDMHTTPModule::SetLampStrikes(const HTTPRequest *request,
 /**
  * Handle the request for the lamp state section
  */
-string RDMHTTPModule::GetLampState(const HTTPRequest *request,
+string RDMHTTPModule::GetLampState(OLA_UNUSED const HTTPRequest *request,
                                    HTTPResponse *response,
                                    unsigned int universe_id,
                                    const UID &uid) {
@@ -2473,7 +2464,6 @@ string RDMHTTPModule::GetLampState(const HTTPRequest *request,
                         response),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -2542,7 +2532,7 @@ string RDMHTTPModule::SetLampState(const HTTPRequest *request,
 /**
  * Handle the request for the lamp mode section
  */
-string RDMHTTPModule::GetLampMode(const HTTPRequest *request,
+string RDMHTTPModule::GetLampMode(OLA_UNUSED const HTTPRequest *request,
                                   HTTPResponse *response,
                                   unsigned int universe_id,
                                   const UID &uid) {
@@ -2556,7 +2546,6 @@ string RDMHTTPModule::GetLampMode(const HTTPRequest *request,
                         response),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -2625,7 +2614,7 @@ string RDMHTTPModule::SetLampMode(const HTTPRequest *request,
 /**
  * Handle the request for the device power cycles section
  */
-string RDMHTTPModule::GetPowerCycles(const HTTPRequest *request,
+string RDMHTTPModule::GetPowerCycles(OLA_UNUSED const HTTPRequest *request,
                                      HTTPResponse *response,
                                      unsigned int universe_id,
                                      const UID &uid) {
@@ -2640,7 +2629,6 @@ string RDMHTTPModule::GetPowerCycles(const HTTPRequest *request,
                         string("Device Power Cycles")),
       &error);
   return error;
-  (void) request;
 }
 
 
@@ -2896,8 +2884,8 @@ string RDMHTTPModule::SetTiltInvert(const HTTPRequest *request,
  * Handle the request for the pan/tilt swap section.
  */
 string RDMHTTPModule::GetPanTiltSwap(HTTPResponse *response,
-                                 unsigned int universe_id,
-                                 const UID &uid) {
+                                     unsigned int universe_id,
+                                     const UID &uid) {
   string error;
   m_rdm_api.GetPanTiltSwap(
       universe_id,
@@ -2986,7 +2974,7 @@ string RDMHTTPModule::SyncClock(HTTPResponse *response,
   time_t now = time(NULL);
   struct tm now_tm;
 #ifdef _WIN32
-  memcpy(&now_tm, localtime(&now), sizeof(now_tm));  // NOLINT
+  memcpy(&now_tm, localtime(&now), sizeof(now_tm));
 #else
   localtime_r(&now, &now_tm);
 #endif
@@ -3016,8 +3004,8 @@ string RDMHTTPModule::SyncClock(HTTPResponse *response,
  * Handle the request for the identify device section.
  */
 string RDMHTTPModule::GetIdentifyDevice(HTTPResponse *response,
-                                      unsigned int universe_id,
-                                      const UID &uid) {
+                                        unsigned int universe_id,
+                                        const UID &uid) {
   string error;
   m_rdm_api.GetIdentifyDevice(
       universe_id,
@@ -3170,9 +3158,9 @@ string RDMHTTPModule::GetResetDevice(HTTPResponse *response) {
  * Set the reset device.
  */
 string RDMHTTPModule::SetResetDevice(const HTTPRequest *request,
-                                    HTTPResponse *response,
-                                    unsigned int universe_id,
-                                    const UID &uid) {
+                                     HTTPResponse *response,
+                                     unsigned int universe_id,
+                                     const UID &uid) {
   string reset_device_str = request->GetParameter(GENERIC_UINT_FIELD);
   uint8_t reset_device;
   ola::rdm::rdm_reset_device_mode reset_device_enum;

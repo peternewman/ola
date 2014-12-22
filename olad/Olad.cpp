@@ -60,7 +60,6 @@ DEFINE_string(pid_location, "",
 DEFINE_s_uint16(http_port, p, ola::OlaServer::DEFAULT_HTTP_PORT,
                 "The port to run the http server on. Defaults to 9090.");
 
-
 /**
  * This is called by the SelectServer loop to start up the SignalThread. If the
  * thread fails to start, we terminate the SelectServer
@@ -77,6 +76,17 @@ void StartSignalThread(ola::io::SelectServer *ss,
  * Main
  */
 int main(int argc, char *argv[]) {
+  // Take a copy of the arguments otherwise the export map is incorrect.
+  const int original_argc = argc;
+  char *original_argv[original_argc];
+  for (int i = 0; i < original_argc; i++) {
+    original_argv[i] = argv[i];
+  }
+
+  // We don't use the longer form for ServerInit here because we need to check
+  // for root and possibly daemonise before doing the rest of the work from
+  // ServerInit.
+
   ola::SetHelpString("[options]", "Start the OLA Daemon.");
   ola::ParseFlags(&argc, argv);
 
@@ -98,7 +108,9 @@ int main(int argc, char *argv[]) {
 #endif
 
   ola::ExportMap export_map;
-  ola::ServerInit(argc, argv, &export_map);
+  if (!ola::ServerInit(original_argc, original_argv, &export_map)) {
+    return ola::EXIT_UNAVAILABLE;
+  }
 
   // We need to block signals before we start any threads.
   // Signal setup is complex. First of all we need to install NULL handlers to

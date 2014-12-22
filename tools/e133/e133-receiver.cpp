@@ -16,14 +16,15 @@
  * e133-receiver.cpp
  * Copyright (C) 2011 Simon Newton
  *
- * This creates a E1.33 receiver with one (emulated) RDM responder. The node is
- * registered in slp and the RDM responder responds to E1.33 commands.
+ * This creates a E1.33 receiver with one (emulated) RDM responder. The node's
+ * RDM responder responds to E1.33 commands.
  */
 
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include <errno.h>
 #include <signal.h>
 
 #include <ola/acn/ACNPort.h>
@@ -83,10 +84,12 @@ SimpleE133Node *simple_node;
 /*
  * Terminate cleanly on interrupt.
  */
-static void InteruptSignal(int signo) {
-  if (simple_node)
+static void InteruptSignal(OLA_UNUSED int signo) {
+  int old_errno = errno;
+  if (simple_node) {
     simple_node->Stop();
-  (void) signo;
+  }
+  errno = old_errno;
 }
 
 void HandleTriDMX(DmxBuffer *buffer, DmxTriWidget *widget) {
@@ -148,7 +151,9 @@ int main(int argc, char *argv[]) {
   // Setup E1.31 if required.
   auto_ptr<ola::plugin::e131::E131Node> e131_node;
   if (FLAGS_e131) {
-    e131_node.reset(new ola::plugin::e131::E131Node(FLAGS_listen_ip, cid));
+    e131_node.reset(new ola::plugin::e131::E131Node(
+          node.SelectServer(), FLAGS_listen_ip,
+          ola::plugin::e131::E131Node::Options(), cid));
     if (!e131_node->Start()) {
       OLA_WARN << "Failed to start E1.31 node";
       exit(ola::EXIT_UNAVAILABLE);

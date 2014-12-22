@@ -34,6 +34,7 @@
 namespace ola {
 
 using ola::network::HostToNetwork;
+using ola::thread::Thread;
 using std::auto_ptr;
 using std::string;
 
@@ -91,8 +92,9 @@ BonjourDiscoveryAgent::RegisterArgs::RegisterArgs(
 }
 
 BonjourDiscoveryAgent::BonjourDiscoveryAgent()
-    : m_thread(new ola::thread::CallbackThread(NewSingleCallback(
-          &m_ss, &ola::io::SelectServer::Run))) {
+    : m_thread(new ola::thread::CallbackThread(
+          NewSingleCallback(this, &BonjourDiscoveryAgent::RunThread),
+          Thread::Options("bonjour"))) {
 }
 
 BonjourDiscoveryAgent::~BonjourDiscoveryAgent() {
@@ -171,5 +173,10 @@ string BonjourDiscoveryAgent::BuildTxtRecord(
     output.append(iter->second);
   }
   return output;
+}
+
+void BonjourDiscoveryAgent::RunThread() {
+  m_ss.Run();
+  m_ss.DrainCallbacks();
 }
 }  // namespace ola

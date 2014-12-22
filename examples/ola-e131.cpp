@@ -34,10 +34,11 @@ using std::endl;
 using std::string;
 
 DECLARE_int32(device);
-DEFINE_s_uint32(port_id, p, -1, "Id of the port to control");
+DEFINE_s_uint32(port_id, p, 0, "Id of the port to control");
 DEFINE_s_default_bool(input, i, false,
                       "Set an input port, otherwise set an output port.");
 DEFINE_bool(preview_mode, false, "Set the preview mode bit on|off");
+DEFINE_default_bool(discovery, false, "Get the discovery state");
 
 /*
  * A class that configures E131 devices
@@ -50,6 +51,7 @@ class E131Configurator: public OlaConfigurator {
   void SendConfigRequest();
  private:
   void DisplayOptions(const ola::plugin::e131::PortInfoReply &reply);
+  void DisplaySourceList(const ola::plugin::e131::SourceListReply &reply);
 };
 
 
@@ -68,12 +70,25 @@ void E131Configurator::HandleConfigResponse(const string &reply,
     cout << "Protobuf parsing failed" << endl;
     return;
   }
-  if (reply_pb.type() == ola::plugin::e131::Reply::E131_PORT_INFO &&
-      reply_pb.has_port_info()) {
-    DisplayOptions(reply_pb.port_info());
-    return;
+
+  switch (reply_pb.type()) {
+    case ola::plugin::e131::Reply::E131_PORT_INFO:
+      if (reply_pb.has_port_info()) {
+        DisplayOptions(reply_pb.port_info());
+      } else {
+        cout << "Missing port_info field in reply" << endl;
+      }
+      break;
+    case ola::plugin::e131::Reply::E131_SOURCES_LIST:
+      if (reply_pb.has_source_list()) {
+        DisplaySourceList(reply_pb.source_list());
+      } else {
+        cout << "Missing source_list field in reply" << endl;
+      }
+      break;
+    default:
+      cout << "Invalid response type" << endl;
   }
-  cout << "Invalid response type or missing port_info field" << endl;
 }
 
 
@@ -86,12 +101,22 @@ void E131Configurator::SendConfigRequest() {
   ola::plugin::e131::Request request;
 
   if (FLAGS_preview_mode.present()) {
-    request.set_type(ola::plugin::e131::Request::E131_PREVIEW_MODE);
-    ola::plugin::e131::PreviewModeRequest *preview_request =
-      request.mutable_preview_mode();
-    preview_request->set_port_id(FLAGS_port_id);
-    preview_request->set_preview_mode(FLAGS_preview_mode);
-    preview_request->set_input_port(FLAGS_input);
+    if (FLAGS_port_id.present()) {
+      request.set_type(ola::plugin::e131::Request::E131_PREVIEW_MODE);
+      ola::plugin::e131::PreviewModeRequest *preview_request =
+          request.mutable_preview_mode();
+      preview_request->set_port_id(FLAGS_port_id);
+      preview_request->set_preview_mode(FLAGS_preview_mode);
+      preview_request->set_input_port(FLAGS_input);
+    } else {
+      cout << "Please specify a port number" << endl;
+      request.set_type(ola::plugin::e131::Request::E131_PORT_INFO);
+    }
+  } else if (FLAGS_discovery) {
+    request.set_type(ola::plugin::e131::Request::E131_SOURCES_LIST);
+    ola::plugin::e131::SourceListRequest *source_list_request =
+        request.mutable_source_list();
+    (void) source_list_request;  // no options for now.
   } else {
     request.set_type(ola::plugin::e131::Request::E131_PORT_INFO);
   }
@@ -118,6 +143,25 @@ void E131Configurator::DisplayOptions(
   }
 }
 
+void E131Configurator::DisplaySourceList(
+    const ola::plugin::e131::SourceListReply &reply) {
+  if (reply.unsupported()) {
+    cout << "Discovery mode isn't enabled" << endl;
+    return;
+  }
+
+  for (int i = 0; i < reply.source_size(); i++) {
+    const ola::plugin::e131::SourceEntry &entry = reply.source(i);
+    cout << entry.cid() << " (" << entry.ip_address() << ")";
+    if (entry.has_source_name()) {
+      cout << ", " << entry.source_name();
+    }
+    cout << endl;
+    for (int j = 0; j < entry.universe_size(); j++) {
+      cout << "  " << entry.universe(j) << endl;
+    }
+  }
+}
 
 /*
  * The main function

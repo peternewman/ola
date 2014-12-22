@@ -135,7 +135,6 @@ include plugins/Makefile.mk
 include olad/Makefile.mk
 include protoc/Makefile.mk
 include python/Makefile.mk
-include slp/Makefile.mk
 include tools/Makefile.mk
 
 # -----------------------------------------------------------------------------
@@ -170,6 +169,7 @@ EXTRA_DIST += \
   config/cppunit.m4 \
   config/maven.m4 \
   config/ola.m4 \
+  config/ola_version.m4 \
   config/pkg.m4 \
   config/resolv.m4 \
   config/stl_hash.m4 \
@@ -222,5 +222,4 @@ EXTRA_DIST += \
   javascript/ola/universe_item.js \
   mac_build.sh \
   tests/recvdmx.py \
-  tests/regression.py \
-  version.sh
+  tests/regression.py
