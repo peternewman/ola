@@ -380,15 +380,16 @@ class RDMHTTPModule {
                                 const ola::rdm::UID &uid);
 
     std::string GetSlots(const ola::http::HTTPRequest *request,
-                               ola::http::HTTPResponse *response,
-                               unsigned int universe_id,
-                               const ola::rdm::UID &uid,
-                               bool include_descriptions = false);
+                         ola::http::HTTPResponse *response,
+                         unsigned int universe_id,
+                         const ola::rdm::UID &uid,
+                         bool include_descriptions = false);
 
-    void GetSlotsHandler(ola::http::HTTPResponse *response,
-                         slots_info *info,
-                         const ola::rdm::ResponseStatus &status,
-                         const std::vector<ola::rdm::SlotDescriptor> &slot_descriptors);
+    void GetSlotsHandler(
+        ola::http::HTTPResponse *response,
+        slots_info *info,
+        const ola::rdm::ResponseStatus &status,
+        const std::vector<ola::rdm::SlotDescriptor> &slot_descriptors);
 
     void SendSectionSlotsResponse(ola::http::HTTPResponse *response,
                                   slots_info *info);

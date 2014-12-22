@@ -1241,6 +1241,8 @@ bool RDMAPI::GetSlotInfo(
                        const ResponseStatus&,
                        const vector<SlotDescriptor>&> *callback,
     string *error) {
+  OLA_INFO << "RDM API Get Slot Info";
+
   if (CheckCallback(error, callback))
     return false;
   if (CheckNotBroadcast(uid, error, callback))
@@ -1252,6 +1254,8 @@ bool RDMAPI::GetSlotInfo(
     this,
     &RDMAPI::_HandleGetSlotInfo,
     callback);
+  OLA_INFO << "RDM API Get Slot Info Pre Return";
+
   return CheckReturnStatus(
     m_impl->RDMGet(cb,
                    universe,
@@ -3726,6 +3730,7 @@ bool RDMAPI::GenericSetU32(
 
 // Checks the status of a rdm command and sets error appropriately
 bool RDMAPI::CheckReturnStatus(bool status, string *error) {
+  OLA_INFO << "Checking return status";
   if (!status && error)
     *error = "Unable to send RDM command";
   return status;

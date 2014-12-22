@@ -40,6 +40,7 @@ bool ClientRDMAPIShim::RDMGet(rdm_callback *callback,
                               uint16_t pid,
                               const uint8_t *data,
                               unsigned int data_length) {
+  OLA_INFO << "RDMGet callback";
   SendRDMArgs args(NewSingleCallback(
       this, &ClientRDMAPIShim::HandleResponse, callback));
   m_client->RDMGet(universe, uid, sub_device, pid, data, data_length, args);
@@ -53,6 +54,7 @@ bool ClientRDMAPIShim::RDMGet(rdm_pid_callback *callback,
                               uint16_t pid,
                               const uint8_t *data,
                               unsigned int data_length) {
+  OLA_INFO << "RDMGet PID callback";
   SendRDMArgs args(NewSingleCallback(
       this, &ClientRDMAPIShim::HandleResponseWithPid, callback));
   m_client->RDMGet(universe, uid, sub_device, pid, data, data_length, args);
