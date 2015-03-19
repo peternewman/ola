@@ -16,9 +16,13 @@
 *.tar.gz
 *.trs
 *_pb2.py
+Thumbs.db
 */.dirstamp
+*/Thumbs.db
 */*/.dirstamp
+*/*/Thumbs.db
 */*/*/.dirstamp
+*/*/*/Thumbs.db
 INSTALL
 Makefile
 Makefile.in
@@ -193,3 +197,9 @@ tools/slp/slp_server
 tools/slp/slp_server.exe
 tools/usbpro/usbpro_firmware
 tools/usbpro/usbpro_firmware.exe
+javascript/new-src/node_modules
+javascript/new-src/.idea
+.project
+.autotools
+.cproject
+.settings

@@ -496,6 +496,11 @@ AS_IF([test "x$enable_java_libs" = xyes],
        MAVEN_SUPPORT([2.2.1])])
 AM_CONDITIONAL([BUILD_JAVA_LIBS], [test "x$enable_java_libs" = xyes])
 
+# Optionally build the Ja Rule tool
+AC_ARG_ENABLE(
+  [ja-rule],
+  [AS_HELP_STRING([--enable-ja-rule], [Build the Ja Rule test tool])])
+
 # libftdi: this requires libusb-0.1.4+ don't know if I should also
 # check for it, since the libusb check above is not for 0.1.4 but for libusb-1
 AC_ARG_ENABLE(
@@ -529,6 +534,15 @@ AS_IF([test "x$enable_libusb" != xno],
 AS_IF([test "x$have_libusb_error_name" = xyes],
       [AC_DEFINE([HAVE_LIBUSB_ERROR_NAME], [1],
                  [define if libusb is installed and has libusb_error_name])])
+
+have_libusb_hotplug_api="no"
+AS_IF([test "x$enable_libusb" != xno],
+      [PKG_CHECK_MODULES([libusb_hotplug_api], [libusb-1.0 >= 1.0.16],
+                         [have_libusb_hotplug_api="yes"], [true])])
+AS_IF([test "x$have_libusb_hotplug_api" = xyes],
+      [AC_DEFINE([HAVE_LIBUSB_HOTPLUG_API], [1],
+                 [define if libusb is installed and the libusb])])
+AM_CONDITIONAL([HAVE_LIBUSB_HOTPLUG_API], [test "x$have_libusb_hotplug_api" = xyes])
 
 # UART direct plugin
 AC_ARG_ENABLE(
@@ -700,6 +714,11 @@ if test -z "${USING_WIN32_TRUE}"; then
   OLA_CLIENT_LIBS="-lWs2_32 -lIphlpapi -lpthread"
 fi
 AC_SUBST(OLA_CLIENT_LIBS)
+
+# Extra tools
+#####################################################
+AM_CONDITIONAL([BUILD_JA_RULE],
+               [test "x$enable_ja_rule" = xyes && test "x$have_libusb" = xyes])
 
 # Output
 #####################################################
