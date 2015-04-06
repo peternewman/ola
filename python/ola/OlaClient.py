@@ -20,14 +20,12 @@
 __author__ = 'nomis52@gmail.com (Simon Newton)'
 
 import array
-import logging
 import socket
 import struct
 from ola.rpc.StreamRpcChannel import StreamRpcChannel
 from ola.rpc.SimpleRpcController import SimpleRpcController
 from ola import Ola_pb2
 from ola.UID import UID
-from ola.RDMConstants import MERGE_MODE
 
 
 """The port that the OLA server listens on."""
@@ -73,8 +71,12 @@ class Plugin(object):
   def enabled(self):
     return self._enabled
 
-  def __cmp__(self, other):
-    return cmp(self._id, other._id)
+  @staticmethod
+  def FromProtobuf(plugin_pb):
+    return Plugin(plugin_pb.plugin_id,
+                  plugin_pb.name,
+                  plugin_pb.active,
+                  plugin_pb.enabled)
 
   def __repr__(self):
     s = 'Plugin(id={id}, name="{name}", active={active}, enabled={enabled})'
@@ -82,6 +84,26 @@ class Plugin(object):
                     name=self.name,
                     active=self.active,
                     enabled=self.enabled)
+
+  def __lt__(self, other):
+    return self.id < other.id
+
+  def __eq__(self, other):
+    return self.id == other.id
+
+  # These 4 could be replaced by functools.total_ordering when support
+  # for 2.6 is dropped.
+  def __le__(self, other):
+    return self.id <= other.id
+
+  def __gt__(self, other):
+    return self.id > other.id
+
+  def __ge__(self, other):
+    return self.id >= other.id
+
+  def __ne__(self, other):
+    return self.id != other.id
 
 
 # Populate the Plugin class attributes from the protobuf
@@ -133,8 +155,17 @@ class Device(object):
   def output_ports(self):
     return self._output_ports
 
-  def __cmp__(self, other):
-    return cmp(self._alias, other._alias)
+  @staticmethod
+  def FromProtobuf(device_pb):
+    input_ports = [Port.FromProtobuf(x) for x in device_pb.input_port]
+    output_ports = [Port.FromProtobuf(x) for x in device_pb.output_port]
+
+    return Device(device_pb.device_id,
+                  device_pb.device_alias,
+                  device_pb.device_name,
+                  device_pb.plugin_id,
+                  input_ports,
+                  output_ports)
 
   def __repr__(self):
     s = 'Device(id="{id}", alias={alias}, name="{name}", ' \
@@ -145,6 +176,26 @@ class Device(object):
                     plugin_id=self.plugin_id,
                     nr_inputs=len(self.input_ports),
                     nr_outputs=len(self.output_ports))
+
+  def __lt__(self, other):
+    return self.alias < other.alias
+
+  def __eq__(self, other):
+    return self.alias == other.alias
+
+  # These 3 could be replaced by functools.total_ordering when support
+  # for 2.6 is dropped.
+  def __le__(self, other):
+    return self.alias <= other.alias
+
+  def __gt__(self, other):
+    return self.alias > other.alias
+
+  def __ge__(self, other):
+    return self.alias >= other.alias
+
+  def __ne__(self, other):
+    return self.alias != other.alias
 
 
 class Port(object):
@@ -184,8 +235,14 @@ class Port(object):
   def supports_rdm(self):
     return self._supports_rdm
 
-  def __cmp__(self, other):
-    return cmp(self._id, other._id)
+  @staticmethod
+  def FromProtobuf(port_pb):
+    universe = port_pb.universe if port_pb.HasField('universe') else None
+    return Port(port_pb.port_id,
+                universe,
+                port_pb.active,
+                port_pb.description,
+                port_pb.supports_rdm)
 
   def __repr__(self):
     s = 'Port(id={id}, universe={universe}, active={active}, ' \
@@ -195,6 +252,26 @@ class Port(object):
                     active=self.active,
                     desc=self.description,
                     supports_rdm=self.supports_rdm)
+
+  def __lt__(self, other):
+    return self.id < other.id
+
+  def __eq__(self, other):
+    return self.id == other.id
+
+  # These 4 could be replaced by functools.total_ordering when support
+  # for 2.6 is dropped.
+  def __le__(self, other):
+    return self.id <= other.id
+
+  def __gt__(self, other):
+    return self.id > other.id
+
+  def __ge__(self, other):
+    return self.id >= other.id
+
+  def __ne__(self, other):
+    return self.id != other.id
 
 
 class Universe(object):
@@ -209,10 +286,12 @@ class Universe(object):
   LTP = Ola_pb2.LTP
   HTP = Ola_pb2.HTP
 
-  def __init__(self, universe_id, name, merge_mode):
+  def __init__(self, universe_id, name, merge_mode, input_ports, output_ports):
     self._id = universe_id
     self._name = name
     self._merge_mode = merge_mode
+    self._input_ports = sorted(input_ports)
+    self._output_ports = sorted(output_ports)
 
   @property
   def id(self):
@@ -226,8 +305,24 @@ class Universe(object):
   def merge_mode(self):
     return self._merge_mode
 
-  def __cmp__(self, other):
-    return cmp(self._id, other._id)
+  @property
+  def input_ports(self):
+    return self._input_ports
+
+  @property
+  def output_ports(self):
+    return self._output_ports
+
+  @staticmethod
+  def FromProtobuf(universe_pb):
+    input_ports = [Port.FromProtobuf(x) for x in universe_pb.input_ports]
+    output_ports = [Port.FromProtobuf(x) for x in universe_pb.output_ports]
+
+    return Universe(universe_pb.universe,
+                    universe_pb.name,
+                    universe_pb.merge_mode,
+                    input_ports,
+                    output_ports)
 
   def __repr__(self):
     merge_mode = 'LTP' if self.merge_mode == Universe.LTP else 'HTP'
@@ -235,6 +330,26 @@ class Universe(object):
     return s.format(id=self.id,
                     name=self.name,
                     merge_mode=merge_mode)
+
+  def __lt__(self, other):
+    return self.id < other.id
+
+  def __eq__(self, other):
+    return self.id == other.id
+
+  # These 4 could be replaced by functools.total_ordering when support
+  # for 2.6 is dropped.
+  def __le__(self, other):
+    return self.id <= other.id
+
+  def __gt__(self, other):
+    return self.id > other.id
+
+  def __ge__(self, other):
+    return self.id >= other.id
+
+  def __ne__(self, other):
+    return self.id != other.id
 
 
 class RequestStatus(object):
@@ -305,8 +420,25 @@ class RDMNack(object):
     return s.format(value=self.value,
                     desc=self.description)
 
-  def __cmp__(self, other):
-    return cmp(self.value, other.value)
+  def __lt__(self, other):
+    return self.value < other.value
+
+  def __eq__(self, other):
+    return self.value == other.value
+
+  # These 4 could be replaced by functools.total_ordering when support
+  # for 2.6 is dropped.
+  def __le__(self, other):
+    return self.value <= other.value
+
+  def __gt__(self, other):
+    return self.value > other.value
+
+  def __ge__(self, other):
+    return self.value >= other.value
+
+  def __ne__(self, other):
+    return self.value != other.value
 
   @classmethod
   def LookupCode(cls, code):
@@ -316,7 +448,7 @@ class RDMNack(object):
     return obj
 
 
-for symbol, (value, description) in RDMNack.NACK_SYMBOLS_TO_VALUES.iteritems():
+for symbol, (value, description) in RDMNack.NACK_SYMBOLS_TO_VALUES.items():
   nack = RDMNack(value, description)
   setattr(RDMNack, symbol, nack)
   RDMNack._CODE_TO_OBJECT[value] = nack
@@ -393,7 +525,7 @@ class RDMResponse(object):
 
   def __init__(self, controller, response):
     self.status = RequestStatus(controller)
-    if (self.status.Succeeded() and (response != None)):
+    if self.status.Succeeded() and response is not None:
       self._response_code = response.response_code
       self._response_type = response.response_type
       self._queued_messages = response.message_count
@@ -497,7 +629,7 @@ class RDMResponse(object):
   def _command_class(self):
     if self.command_class == OlaClient.RDM_GET_RESPONSE:
       return 'GET'
-    elif self.command_class == OlaClient.RDM_SET_RESPONSE :
+    elif self.command_class == OlaClient.RDM_SET_RESPONSE:
       return 'SET'
     elif self.command_class == OlaClient.RDM_DISCOVERY_RESPONSE:
       return 'DISCOVERY'
@@ -507,7 +639,7 @@ class RDMResponse(object):
 
 class OlaClient(Ola_pb2.OlaClientService):
   """The client used to communicate with olad."""
-  def __init__(self, our_socket = None, close_callback = None):
+  def __init__(self, our_socket=None, close_callback=None):
     """Create a new client.
 
     Args:
@@ -945,7 +1077,7 @@ class OlaClient(Ola_pb2.OlaClientService):
       raise OLADNotRunningException()
     return True
 
-  def RDMGet(self, universe, uid, sub_device, param_id, callback, data = ''):
+  def RDMGet(self, universe, uid, sub_device, param_id, callback, data=''):
     """Send an RDM get command.
 
     Args:
@@ -963,9 +1095,9 @@ class OlaClient(Ola_pb2.OlaClientService):
       return False
 
     return self._RDMMessage(universe, uid, sub_device, param_id, callback,
-                            data);
+                            data)
 
-  def RDMSet(self, universe, uid, sub_device, param_id, callback, data = ''):
+  def RDMSet(self, universe, uid, sub_device, param_id, callback, data=''):
     """Send an RDM set command.
 
     Args:
@@ -983,7 +1115,7 @@ class OlaClient(Ola_pb2.OlaClientService):
       return False
 
     return self._RDMMessage(universe, uid, sub_device, param_id, callback,
-                            data, set = True);
+                            data, set=True)
 
   def SendRawRDMDiscovery(self,
                           universe,
@@ -991,7 +1123,7 @@ class OlaClient(Ola_pb2.OlaClientService):
                           sub_device,
                           param_id,
                           callback,
-                          data = ''):
+                          data=''):
     """Send an RDM Discovery command. Unless you're writing RDM tests you
       shouldn't need to use this.
 
@@ -1061,7 +1193,7 @@ class OlaClient(Ola_pb2.OlaClientService):
     return True
 
   def _RDMMessage(self, universe, uid, sub_device, param_id, callback, data,
-                  set = False):
+                  set=False):
     controller = SimpleRpcController()
     request = Ola_pb2.RDMRequest()
     request.universe = universe
@@ -1093,9 +1225,7 @@ class OlaClient(Ola_pb2.OlaClientService):
     plugins = None
 
     if status.Succeeded():
-      plugins = [Plugin(p.plugin_id, p.name, p.active, p.enabled)
-                 for p in response.plugin]
-      plugins.sort(key=lambda x: x.id)
+      plugins = sorted([Plugin.FromProtobuf(p) for p in response.plugin])
 
     callback(status, plugins)
 
@@ -1137,22 +1267,10 @@ class OlaClient(Ola_pb2.OlaClientService):
         input_ports = []
         output_ports = []
         for port in device.input_port:
-          universe = port.universe if port.HasField('universe') else None
-
-          input_ports.append(Port(port.port_id,
-                                  universe,
-                                  port.active,
-                                  port.description,
-                                  port.supports_rdm))
+          input_ports.append(Port.FromProtobuf(port))
 
         for port in device.output_port:
-          universe = port.universe if port.HasField('universe') else None
-
-          output_ports.append(Port(port.port_id,
-                                   universe,
-                                   port.active,
-                                   port.description,
-                                   port.supports_rdm))
+          output_ports.append(Port.FromProtobuf(port))
 
         devices.append(Device(device.device_id,
                               device.device_alias,
@@ -1176,8 +1294,7 @@ class OlaClient(Ola_pb2.OlaClientService):
     universes = None
 
     if status.Succeeded():
-      universes = [Universe(u.universe, u.name, u.merge_mode) for u in
-          response.universe]
+      universes = [Universe.FromProtobuf(u) for u in response.universe]
 
     callback(status, universes)
 

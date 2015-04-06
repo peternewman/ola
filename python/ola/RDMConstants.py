@@ -28,9 +28,10 @@ RDM_MANUFACTURER_PID_MAX = 0xFFDF
 RDM_MANUFACTURER_SD_MIN = 0x8000
 RDM_MANUFACTURER_SD_MAX = 0xFFDF
 
+
 def _ReverseDict(input):
   output = {}
-  for key, value in input.iteritems():
+  for key, value in input.items():
     output[value] = key
   return output
 
