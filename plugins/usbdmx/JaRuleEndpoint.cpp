@@ -13,24 +13,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * OpenLightingDevice.cpp
- * The Open Lighting USB Device.
+ * JaRuleEndpoint.cpp
+ * Handles the communication with a Ja Rule USB endpoint.
  * Copyright (C) 2015 Simon Newton
  */
 
-#include "tools/ja-rule/OpenLightingDevice.h"
+#include "plugins/usbdmx/JaRuleEndpoint.h"
 
 #include <libusb.h>
 
 #include <string.h>
 
 #include <ola/Callback.h>
-#include <ola/Clock.h>
 #include <ola/Constants.h>
-#include <ola/DmxBuffer.h>
 #include <ola/Logging.h>
 #include <ola/base/Array.h>
-#include <ola/io/SelectServer.h>
 #include <ola/strings/Format.h>
 #include <ola/thread/Mutex.h>
 #include <ola/util/Utils.h>
@@ -40,68 +37,64 @@
 
 #include "plugins/usbdmx/LibUsbAdaptor.h"
 
-using ola::Clock;
-using ola::NewCallback;
+namespace ola {
+namespace plugin {
+namespace usbdmx {
+
 using ola::NewSingleCallback;
-using ola::TimeInterval;
-using ola::TimeStamp;
-using ola::io::SelectServer;
 using ola::plugin::usbdmx::LibUsbAdaptor;
-using ola::thread::Mutex;
 using ola::thread::MutexLocker;
 using ola::utils::JoinUInt8;
 using ola::utils::SplitUInt16;
-using std::auto_ptr;
 using std::cout;
 using std::string;
-
-static const uint8_t kInEndpoint = 0x81;
-static const uint8_t kOutEndpoint = 0x01;
-static const unsigned int kTimeout = 1000;
 
 namespace {
 
 void InTransferCompleteHandler(struct libusb_transfer *transfer) {
-  OpenLightingDevice *sender = static_cast<OpenLightingDevice*>(
+  JaRuleEndpoint *sender = static_cast<JaRuleEndpoint*>(
       transfer->user_data);
   return sender->_InTransferComplete();
 }
 
 void OutTransferCompleteHandler(struct libusb_transfer *transfer) {
-  OpenLightingDevice *sender = static_cast<OpenLightingDevice*>(
+  JaRuleEndpoint *sender = static_cast<JaRuleEndpoint*>(
       transfer->user_data);
   return sender->_OutTransferComplete();
 }
 }  // namespace
 
 
-OpenLightingDevice::OpenLightingDevice(SelectServer* ss, libusb_device* device)
-  : m_ss(ss),
+JaRuleEndpoint::JaRuleEndpoint(ola::thread::ExecutorInterface *executor,
+                               AsyncronousLibUsbAdaptor *adaptor,
+                               libusb_device* device)
+  : m_executor(executor),
+    m_adaptor(adaptor),
     m_device(device),
-    m_handle(NULL),
+    m_usb_handle(NULL),
+    m_message_handler(NULL),
     m_pending_requests(0),
-    m_out_transfer(libusb_alloc_transfer(0)),
+    m_out_transfer(adaptor->AllocTransfer(0)),
     m_out_in_progress(false),
-    m_in_transfer(libusb_alloc_transfer(0)),
+    m_in_transfer(adaptor->AllocTransfer(0)),
     m_in_in_progress(false) {
+  m_adaptor->RefDevice(device);
 }
 
-OpenLightingDevice::~OpenLightingDevice() {
+JaRuleEndpoint::~JaRuleEndpoint() {
   {
     MutexLocker locker(&m_mutex);
 
     if (m_out_in_progress) {
-      OLA_DEBUG << "Cancel m_out_transfer";
-      libusb_cancel_transfer(m_out_transfer);
+      m_adaptor->CancelTransfer(m_out_transfer);
     }
 
     if (m_in_in_progress) {
-      OLA_DEBUG << "Cancel m_in_transfer";
-      libusb_cancel_transfer(m_in_transfer);
+      m_adaptor->CancelTransfer(m_in_transfer);
     }
   }
 
-  OLA_DEBUG << "Waiting for out to complete";
+  OLA_DEBUG << "Waiting for transfers to complete";
   bool transfers_pending = true;
   while (transfers_pending) {
     // Spin waiting for the transfers to complete.
@@ -110,66 +103,50 @@ OpenLightingDevice::~OpenLightingDevice() {
   }
 
   if (m_out_transfer) {
-    libusb_free_transfer(m_out_transfer);
+    m_adaptor->FreeTransfer(m_out_transfer);
   }
 
   if (m_in_transfer) {
-    libusb_free_transfer(m_in_transfer);
+    m_adaptor->FreeTransfer(m_in_transfer);
   }
 
-  if (m_handle) {
-    libusb_close(m_handle);
-    m_handle = NULL;
+  if (m_usb_handle) {
+    m_adaptor->Close(m_usb_handle);
   }
+  m_adaptor->UnrefDevice(m_device);
 }
 
-bool OpenLightingDevice::Init() {
-  int r = libusb_open(m_device, &m_handle);
-  if (r != 0) {
-    OLA_WARN << "Failed to open device: "
-             << LibUsbAdaptor::ErrorCodeToString(r);
-    return false;
-  }
-
-  r = libusb_claim_interface(m_handle, INTERFACE_OFFSET);
-  if (r) {
-    OLA_WARN << "Failed to claim interface: " << INTERFACE_OFFSET;
-    libusb_close(m_handle);
-    m_handle = NULL;
-    return false;
-  }
-  return true;
+bool JaRuleEndpoint::Init() {
+  return m_adaptor->OpenDeviceAndClaimInterface(m_device, INTERFACE_OFFSET,
+                                                &m_usb_handle);
 }
 
-bool OpenLightingDevice::SendMessage(Command command,
-                                     const uint8_t *data,
-                                     unsigned int size) {
+bool JaRuleEndpoint::SendMessage(Command command,
+                                 const uint8_t *data,
+                                 unsigned int size) {
   if (size > MAX_PAYLOAD_SIZE) {
-    OLA_WARN << "Message exceeds max payload size";
+    OLA_WARN << "JaRule message exceeds max payload size";
     return false;
   }
 
   if (size != 0 && data == NULL) {
-    OLA_WARN << "Data is NULL";
+    OLA_WARN << "JaRule data is NULL, size was " << size;
     return false;
   }
 
-  MutexLocker locker(&m_mutex);
   PendingRequest request = {
     command,
     string(reinterpret_cast<const char*>(data), size)
   };
+
+  MutexLocker locker(&m_mutex);
   m_queued_requests.push(request);
   MaybeSendRequest();
   return true;
 }
 
-void OpenLightingDevice::_OutTransferComplete() {
-  TimeStamp now;
-  Clock clock;
-  clock.CurrentTime(&now);
-  OLA_INFO << "Out Command completed in " << (now - m_out_sent_time)
-           << ", status is "
+void JaRuleEndpoint::_OutTransferComplete() {
+  OLA_DEBUG << "Out Command status is "
            << LibUsbAdaptor::ErrorCodeToString(m_in_transfer->status);
   if (m_out_transfer->status == LIBUSB_TRANSFER_COMPLETED) {
     if (m_out_transfer->actual_length != m_out_transfer->length) {
@@ -183,20 +160,16 @@ void OpenLightingDevice::_OutTransferComplete() {
   MaybeSendRequest();
 }
 
-void OpenLightingDevice::_InTransferComplete() {
-  TimeStamp now;
-  Clock clock;
-  clock.CurrentTime(&now);
-  OLA_INFO << "In transfer completed in " << (now - m_out_sent_time)
-           << ", status is "
-           << LibUsbAdaptor::ErrorCodeToString(m_in_transfer->status);
+void JaRuleEndpoint::_InTransferComplete() {
+  OLA_DEBUG << "In transfer completed status is "
+            << LibUsbAdaptor::ErrorCodeToString(m_in_transfer->status);
 
   if (m_in_transfer->status == LIBUSB_TRANSFER_COMPLETED) {
     // Ownership of the buffer is transferred to the HandleData method,
-    // running on the SS thread.
-    m_ss->Execute(
+    // running on the Executor thread.
+    m_executor->Execute(
         NewSingleCallback(
-          this, &OpenLightingDevice::HandleData,
+          this, &JaRuleEndpoint::HandleData,
           reinterpret_cast<const uint8_t*>(m_in_transfer->buffer),
           static_cast<unsigned int>(m_in_transfer->actual_length)));
   } else {
@@ -211,13 +184,13 @@ void OpenLightingDevice::_InTransferComplete() {
   }
 }
 
-void OpenLightingDevice::MaybeSendRequest() {
-  if (m_out_in_progress || m_pending_requests > MAX_IN_FLIGHT ||
+void JaRuleEndpoint::MaybeSendRequest() {
+  if (m_out_in_progress ||
+      m_pending_requests > MAX_IN_FLIGHT ||
       m_queued_requests.empty()) {
     return;
   }
 
-  OLA_INFO << "Sending out transfer";
   PendingRequest request = m_queued_requests.front();
   m_queued_requests.pop();
 
@@ -241,20 +214,18 @@ void OpenLightingDevice::MaybeSendRequest() {
     m_out_buffer[offset++] = 0;
   }
 
-  libusb_fill_bulk_transfer(m_out_transfer, m_handle, kOutEndpoint,
-                            m_out_buffer, offset,
-                            OutTransferCompleteHandler,
-                            static_cast<void*>(this),
-                            kTimeout);
+  m_adaptor->FillBulkTransfer(m_out_transfer, m_usb_handle, OUT_ENDPOINT,
+                              m_out_buffer, offset,
+                              OutTransferCompleteHandler,
+                              static_cast<void*>(this),
+                              ENDPOINT_TIMEOUT_MS);
 
-  Clock clock;
-  clock.CurrentTime(&m_out_sent_time);
-  OLA_INFO << "TX: Sending " << offset << " bytes";
+  OLA_DEBUG << "TX: command: " << strings::ToHex(request.command)
+            << ", size " << offset;
 
-  int r = libusb_submit_transfer(m_out_transfer);
-
+  int r = m_adaptor->SubmitTransfer(m_out_transfer);
   if (r) {
-    OLA_WARN << "Failed to submit out transfer: "
+    OLA_WARN << "Failed to submit outbound transfer: "
              << LibUsbAdaptor::ErrorCodeToString(r);
     return;
   }
@@ -267,22 +238,20 @@ void OpenLightingDevice::MaybeSendRequest() {
   return;
 }
 
-bool OpenLightingDevice::SubmitInTransfer() {
+bool JaRuleEndpoint::SubmitInTransfer() {
   if (m_in_in_progress) {
     OLA_WARN << "Read already pending";
     return true;
   }
 
   uint8_t* rx_buffer = new uint8_t[IN_BUFFER_SIZE];
-  libusb_fill_bulk_transfer(m_in_transfer, m_handle, kInEndpoint,
-                            rx_buffer, IN_BUFFER_SIZE,
-                            InTransferCompleteHandler,
-                            static_cast<void*>(this),
-                            kTimeout);
+  m_adaptor->FillBulkTransfer(m_in_transfer, m_usb_handle, IN_ENDPOINT,
+                              rx_buffer, IN_BUFFER_SIZE,
+                              InTransferCompleteHandler,
+                              static_cast<void*>(this),
+                              ENDPOINT_TIMEOUT_MS);
 
-  Clock clock;
-  clock.CurrentTime(&m_send_in_time);
-  int r = libusb_submit_transfer(m_in_transfer);
+  int r = m_adaptor->SubmitTransfer(m_in_transfer);
   if (r) {
     OLA_WARN << "Failed to submit input transfer: "
              << LibUsbAdaptor::ErrorCodeToString(r);
@@ -293,16 +262,11 @@ bool OpenLightingDevice::SubmitInTransfer() {
   return true;
 }
 
-void OpenLightingDevice::HandleData(const uint8_t* data, unsigned int size) {
-  class ArrayDeleter {
-   public:
-    explicit ArrayDeleter(const uint8_t* data) : m_data(data) {}
-    ~ArrayDeleter() { delete[] m_data; }
-   private:
-    const uint8_t* m_data;
-  };
-
-  ArrayDeleter deleter(data);
+/*
+ * This is called on the Executor thread.
+ */
+void JaRuleEndpoint::HandleData(const uint8_t *data, unsigned int size) {
+  ola::ArrayDeleter deleter(data);
 
   // Right now we assume that the device only sends a single message at a time.
   // If this ever changes from a message model to more of a stream model we'll
@@ -318,7 +282,7 @@ void OpenLightingDevice::HandleData(const uint8_t* data, unsigned int size) {
   }
 
   if (data[0] != SOF_IDENTIFIER) {
-    OLA_WARN << "SOF mismatch, was " << ola::strings::ToHex(data[0]);
+    OLA_WARN << "SOF_IDENTIFIER mismatch, was " << ola::strings::ToHex(data[0]);
     return;
   }
 
@@ -346,6 +310,8 @@ void OpenLightingDevice::HandleData(const uint8_t* data, unsigned int size) {
     command, return_code, flags,
     data + MIN_RESPONSE_SIZE - 1, payload_size
   };
-
   m_message_handler->NewMessage(message);
 }
+}  // namespace usbdmx
+}  // namespace plugin
+}  // namespace ola
