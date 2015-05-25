@@ -32,9 +32,9 @@
 #include <ola/util/Utils.h>
 #include <ola/strings/Format.h>
 #include <ola/util/SequenceNumber.h>
+#include <string.h>
 
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "plugins/usbdmx/JaRuleEndpoint.h"
@@ -46,6 +46,7 @@ namespace plugin {
 namespace usbdmx {
 
 using ola::NewSingleCallback;
+using ola::io::ByteString;
 using ola::rdm::DiscoveryAgent;
 using ola::rdm::DiscoverableQueueingRDMController;
 using ola::rdm::RDMCallback;
@@ -53,15 +54,16 @@ using ola::rdm::RDMCommand;
 using ola::rdm::RDMCommandSerializer;
 using ola::rdm::RDMDiscoveryCallback;
 using ola::rdm::RDMDiscoveryResponse;
+using ola::rdm::RDMReply;
 using ola::rdm::RDMRequest;
 using ola::rdm::RDMResponse;
 using ola::rdm::RDMSetRequest;
+using ola::rdm::RunRDMCallback;
 using ola::rdm::UID;
 using ola::rdm::UIDSet;
-using ola::rdm::rdm_response_code;
+using ola::rdm::RDMStatusCode;
 using ola::strings::ToHex;
 using std::auto_ptr;
-using std::string;
 using std::vector;
 
 JaRuleWidgetImpl::JaRuleWidgetImpl(ola::io::SelectServerInterface *ss,
@@ -69,19 +71,19 @@ JaRuleWidgetImpl::JaRuleWidgetImpl(ola::io::SelectServerInterface *ss,
                                    libusb_device *device,
                                    const UID &controller_uid)
     : m_endpoint(ss, adaptor, device),
+      m_in_shutdown(false),
+      m_dmx_in_progress(false),
+      m_dmx_queued(false),
+      m_dmx_callback(NewCallback(this, &JaRuleWidgetImpl::DMXComplete)),
       m_discovery_agent(this),
-      m_our_uid(controller_uid),
-      m_rdm_callback(NULL),
-      m_rdm_request(NULL),
-      m_mute_callback(NULL),
-      m_unmute_callback(NULL),
-      m_branch_callback(NULL) {
-  m_endpoint.SetHandler(this);
+      m_our_uid(controller_uid) {
 }
 
 JaRuleWidgetImpl::~JaRuleWidgetImpl() {
+  m_in_shutdown = true;
   m_discovery_agent.Abort();
-  m_endpoint.SetHandler(NULL);
+  m_endpoint.CancelAll();
+  delete m_dmx_callback;
 }
 
 bool JaRuleWidgetImpl::Init() {
@@ -102,25 +104,19 @@ void JaRuleWidgetImpl::RunIncrementalDiscovery(RDMDiscoveryCallback *callback) {
       callback));
 }
 
-
-void JaRuleWidgetImpl::SendRDMRequest(const RDMRequest *request,
+void JaRuleWidgetImpl::SendRDMRequest(RDMRequest *request,
                                       ola::rdm::RDMCallback *on_complete) {
-  m_rdm_callback = on_complete;
-  m_rdm_request = request;
-
-  unsigned int rdm_length = RDMCommandSerializer::RequiredSize(*request);
-  uint8_t data[rdm_length];
-  RDMCommandSerializer::Pack(*request, data, &rdm_length);
-
-  JaRuleEndpoint::Command command;
-  if (request->IsDUB()) {
-    command = JaRuleEndpoint::RDM_DUB;
-  } else {
-    command = request->DestinationUID().IsBroadcast() ?
-              JaRuleEndpoint::RDM_BROADCAST_REQUEST :
-              JaRuleEndpoint::RDM_REQUEST;
+  ByteString frame;
+  if (!RDMCommandSerializer::Pack(*request, &frame)) {
+    RunRDMCallback(on_complete, ola::rdm::RDM_FAILED_TO_SEND);
+    delete request;
+    return;
   }
-  m_endpoint.SendMessage(command, data, rdm_length);
+
+  m_endpoint.SendCommand(
+      GetCommandFromRequest(request), frame.data(), frame.size(),
+      NewSingleCallback(this, &JaRuleWidgetImpl::RDMComplete,
+                        static_cast<const RDMRequest*>(request), on_complete));
 }
 
 void JaRuleWidgetImpl::MuteDevice(const UID &target,
@@ -129,12 +125,12 @@ void JaRuleWidgetImpl::MuteDevice(const UID &target,
       ola::rdm::NewMuteRequest(m_our_uid, target,
                                m_transaction_number.Next()));
 
-  unsigned int rdm_length = RDMCommandSerializer::RequiredSize(*request);
-  uint8_t data[rdm_length];
-  RDMCommandSerializer::Pack(*request, data, &rdm_length);
-  m_endpoint.SendMessage(JaRuleEndpoint::RDM_REQUEST, data, rdm_length);
-
-  m_mute_callback = mute_complete;
+  ByteString frame;
+  RDMCommandSerializer::Pack(*request, &frame);
+  m_endpoint.SendCommand(
+      JaRuleEndpoint::RDM_REQUEST, frame.data(), frame.size(),
+      NewSingleCallback(this, &JaRuleWidgetImpl::MuteDeviceComplete,
+                        mute_complete));
 }
 
 void JaRuleWidgetImpl::UnMuteAll(UnMuteDeviceCallback *unmute_complete) {
@@ -142,13 +138,12 @@ void JaRuleWidgetImpl::UnMuteAll(UnMuteDeviceCallback *unmute_complete) {
       ola::rdm::NewUnMuteRequest(m_our_uid, UID::AllDevices(),
                                  m_transaction_number.Next()));
 
-  unsigned int rdm_length = RDMCommandSerializer::RequiredSize(*request);
-  uint8_t data[rdm_length];
-  RDMCommandSerializer::Pack(*request, data, &rdm_length);
-  m_endpoint.SendMessage(JaRuleEndpoint::RDM_BROADCAST_REQUEST, data,
-                         rdm_length);
-
-  m_unmute_callback = unmute_complete;
+  ByteString frame;
+  RDMCommandSerializer::Pack(*request, &frame);
+  m_endpoint.SendCommand(
+      JaRuleEndpoint::RDM_BROADCAST_REQUEST, frame.data(), frame.size(),
+      NewSingleCallback(this, &JaRuleWidgetImpl::UnMuteDeviceComplete,
+                        unmute_complete));
 }
 
 void JaRuleWidgetImpl::Branch(const UID &lower,
@@ -157,201 +152,210 @@ void JaRuleWidgetImpl::Branch(const UID &lower,
   auto_ptr<RDMRequest> request(
       ola::rdm::NewDiscoveryUniqueBranchRequest(m_our_uid, lower, upper,
                                                 m_transaction_number.Next()));
-  unsigned int rdm_length = RDMCommandSerializer::RequiredSize(*request);
-  uint8_t data[rdm_length];
-  RDMCommandSerializer::Pack(*request, data, &rdm_length);
-  OLA_INFO << "Sending RDM DUB: " << lower << " - " << upper;
-  m_endpoint.SendMessage(JaRuleEndpoint::RDM_DUB, data, rdm_length);
 
-  m_branch_callback = branch_complete;
+  ByteString frame;
+  RDMCommandSerializer::Pack(*request, &frame);
+  OLA_INFO << "Sending RDM DUB: " << lower << " - " << upper;
+  m_endpoint.SendCommand(
+      JaRuleEndpoint::RDM_DUB, frame.data(), frame.size(),
+      NewSingleCallback(this, &JaRuleWidgetImpl::DUBComplete, branch_complete));
 }
 
 bool JaRuleWidgetImpl::SendDMX(const DmxBuffer &buffer) {
-  // TODO(simon): We should figure out throttling here.
-  m_endpoint.SendMessage(JaRuleEndpoint::TX_DMX, buffer.GetRaw(),
-                         buffer.Size());
+  if (m_dmx_in_progress) {
+    m_dmx = buffer;
+    m_dmx_queued = true;
+  } else {
+    m_dmx_in_progress = true;
+    m_endpoint.SendCommand(JaRuleEndpoint::TX_DMX, buffer.GetRaw(),
+                           buffer.Size(), m_dmx_callback);
+  }
   return true;
 }
 
 void JaRuleWidgetImpl::ResetDevice() {
-  m_endpoint.SendMessage(JaRuleEndpoint::RESET_DEVICE, NULL, 0);
+  m_endpoint.SendCommand(JaRuleEndpoint::RESET_DEVICE, NULL, 0, NULL);
 }
 
-void JaRuleWidgetImpl::NewMessage(const Message &message) {
-  OLA_INFO << "Got message " << ToHex(message.command) << ", RC "
-           << ToHex(message.return_code);
-  switch (message.command) {
-    case JaRuleEndpoint::TX_DMX:
-      // Ignore for now.
-      // TODO(simon): handle this.
-      break;
-    case JaRuleEndpoint::RDM_DUB:
-      HandleDUBResponse(message);
-      break;
-    case JaRuleEndpoint::RDM_REQUEST:
-    case JaRuleEndpoint::RDM_BROADCAST_REQUEST:
-      HandleRDM(message);
-      break;
-    case JaRuleEndpoint::RESET_DEVICE:
-      PrintAck(message);
-      break;
-    default:
-      OLA_WARN << "Unknown command: " << ToHex(message.command);
-  }
-
-  if (message.flags & LOGS_PENDING_FLAG) {
+void JaRuleWidgetImpl::CheckStatusFlags(uint8_t flags) {
+  if (flags & JaRuleEndpoint::LOGS_PENDING_FLAG) {
     OLA_INFO << "Logs pending!";
   }
-  if (message.flags & FLAGS_CHANGED_FLAG) {
+  if (flags & JaRuleEndpoint::FLAGS_CHANGED_FLAG) {
     OLA_INFO << "Flags changed!";
   }
-  if (message.flags & MSG_TRUNCATED_FLAG) {
+  if (flags & JaRuleEndpoint::MSG_TRUNCATED_FLAG) {
     OLA_INFO << "Message truncated";
   }
 }
 
-void JaRuleWidgetImpl::PrintAck(const Message &message) {
-  OLA_INFO << "ACK (" << static_cast<int>(message.return_code)
-           << "): payload_size: " << message.payload_size;
-}
-
-void JaRuleWidgetImpl::HandleDUBResponse(const Message &message) {
-  const uint8_t *data = NULL;
-  unsigned int size = 0;
-  if (message.payload && message.payload_size > 1) {
-    data = message.payload + 1;
-    size = message.payload_size - 1;
-  }
-
-  if (m_branch_callback) {
-    BranchCallback *callback = m_branch_callback;
-    m_branch_callback = NULL;
-    callback->Run(data, size);
-  } else if (m_rdm_callback) {
-    vector<string> packets;
-    RDMCallback *callback = m_rdm_callback;
-    m_rdm_callback = NULL;
-    auto_ptr<const RDMRequest> request(m_rdm_request);
-    m_rdm_request = NULL;
-    string packet;
-    if (data) {
-      packet.assign(reinterpret_cast<const char*>(data), size);
-      packets.push_back(packet);
-    }
-    callback->Run(
-        message.return_code == RC_RX_TIMEOUT ?
-            rdm::RDM_TIMEOUT :
-            rdm::RDM_DUB_RESPONSE,
-        NULL, packets);
+void JaRuleWidgetImpl::DMXComplete(
+    OLA_UNUSED JaRuleEndpoint::CommandResult result,
+    OLA_UNUSED uint8_t return_code,
+    uint8_t status_flags,
+    OLA_UNUSED const ola::io::ByteString &payload) {
+  CheckStatusFlags(status_flags);
+  // We ignore status and return_code, since DMX is streaming.
+  if (m_dmx_queued && !m_in_shutdown) {
+    m_endpoint.SendCommand(JaRuleEndpoint::TX_DMX, m_dmx.GetRaw(),
+                           m_dmx.Size(), m_dmx_callback);
+    m_dmx_queued = false;
+  } else {
+    m_dmx_in_progress = false;
   }
 }
 
-void JaRuleWidgetImpl::HandleRDM(const Message &message) {
-  if (m_unmute_callback) {
-    // TODO(simon): At some point we need to account for failures here.
-    UnMuteDeviceCallback *callback = m_unmute_callback;
-    m_unmute_callback = NULL;
-    callback->Run();
-    return;
-  }
+void JaRuleWidgetImpl::MuteDeviceComplete(MuteDeviceCallback *mute_complete,
+                                          JaRuleEndpoint::CommandResult result,
+                                          uint8_t return_code,
+                                          uint8_t status_flags,
+                                          const ola::io::ByteString &payload) {
+  CheckStatusFlags(status_flags);
+  bool muted_ok = false;
+  if (result == JaRuleEndpoint::COMMAND_COMPLETED_OK &&
+      return_code == RC_OK &&
+      payload.size() > sizeof(GetSetTiming)) {
+    // Skip the timing data & the start code.
+    ola::rdm::RDMStatusCode status_code = rdm::RDM_INVALID_RESPONSE;
+    auto_ptr<RDMResponse> response(RDMResponse::InflateFromData(
+          payload.substr(sizeof(GetSetTiming) + 1), &status_code));
 
-  if (m_mute_callback) {
-    // TODO(simon): inflate the actual RDM response here. Right now we treat
-    // any response as good.
-    bool ok = message.payload_size > 1;
-    MuteDeviceCallback *callback = m_mute_callback;
-    m_mute_callback = NULL;
-    callback->Run(ok);
+    // TODO(simon): I guess we could ack timer the MUTE. Handle this case
+    // someday.
+    muted_ok = (
+        status_code == rdm::RDM_COMPLETED_OK &&
+        response.get() &&
+        response->CommandClass() == RDMCommand::DISCOVER_COMMAND_RESPONSE &&
+        response->ResponseType() == rdm::RDM_ACK);
   }
+  mute_complete->Run(muted_ok);
+}
 
-  if (m_rdm_callback) {
-    HandleRDMResponse(message);
+void JaRuleWidgetImpl::UnMuteDeviceComplete(
+    UnMuteDeviceCallback *unmute_complete,
+    OLA_UNUSED JaRuleEndpoint::CommandResult result,
+    OLA_UNUSED uint8_t return_code,
+    OLA_UNUSED uint8_t status_flags,
+    OLA_UNUSED const ola::io::ByteString &payload) {
+  CheckStatusFlags(status_flags);
+  // TODO(simon): At some point we need to account for failures here.
+  unmute_complete->Run();
+}
+
+
+void JaRuleWidgetImpl::DUBComplete(BranchCallback *callback,
+                                   JaRuleEndpoint::CommandResult result,
+                                   uint8_t return_code,
+                                   uint8_t status_flags,
+                                   const ola::io::ByteString &payload) {
+  CheckStatusFlags(status_flags);
+  ByteString discovery_data;
+  if (payload.size() >= sizeof(DUBTiming)) {
+    discovery_data = payload.substr(sizeof(DUBTiming));
+  }
+  if (result == JaRuleEndpoint::COMMAND_COMPLETED_OK && return_code == RC_OK) {
+    callback->Run(discovery_data.data(), discovery_data.size());
+  } else {
+    callback->Run(NULL, 0);
   }
 }
 
-void JaRuleWidgetImpl::HandleRDMResponse(const Message &message) {
-  vector<string> packets;
-  RDMCallback *callback = m_rdm_callback;
-  m_rdm_callback = NULL;
-  auto_ptr<const RDMRequest> request(m_rdm_request);
-  m_rdm_request = NULL;
+void JaRuleWidgetImpl::RDMComplete(const ola::rdm::RDMRequest *request_ptr,
+                                   ola::rdm::RDMCallback *callback,
+                                   JaRuleEndpoint::CommandResult result,
+                                   uint8_t return_code,
+                                   uint8_t status_flags,
+                                   const ola::io::ByteString &payload) {
+  CheckStatusFlags(status_flags);
+  auto_ptr<const RDMRequest> request(request_ptr);
+  ola::rdm::RDMFrames frames;
 
-  if (message.payload == 0) {
-    callback->Run(rdm::RDM_FAILED_TO_SEND, NULL, packets);
-    return;
+  if (result != JaRuleEndpoint::COMMAND_COMPLETED_OK) {
+    RunRDMCallback(callback, rdm::RDM_FAILED_TO_SEND);
   }
 
-  uint8_t rc = message.return_code;
-
-  ola::rdm::rdm_response_code response_code = rdm::RDM_INVALID_RESPONSE;
+  JaRuleEndpoint::CommandClass command = GetCommandFromRequest(request.get());
+  ola::rdm::RDMStatusCode status_code = rdm::RDM_INVALID_RESPONSE;
   ola::rdm::RDMResponse *response = NULL;
 
-  if (message.command == JaRuleEndpoint::RDM_BROADCAST_REQUEST) {
-    switch (rc) {
-      case RC_OK:
-        response = UnpackRDMResponse(
-            request.get(), message.payload + 1, message.payload_size - 1,
-            &response_code);
-        break;
-      case RC_RX_TIMEOUT:
-        response_code = rdm::RDM_WAS_BROADCAST;
-        break;
-      case RC_TX_ERROR:
-        response_code = rdm::RDM_FAILED_TO_SEND;
-        break;
-      default:
-        OLA_WARN << "Unknown Ja Rule RDM RC: " << ToHex(rc);
-        response_code = rdm::RDM_FAILED_TO_SEND;
-        break;
+  if (command == JaRuleEndpoint::RDM_DUB && return_code == RC_OK) {
+    if (payload.size() > sizeof(DUBTiming)) {
+      // TODO(simon): Add timing info here.
+      frames.push_back(ola::rdm::RDMFrame(payload.substr(sizeof(DUBTiming))));
     }
+    status_code = rdm::RDM_DUB_RESPONSE;
+  } else if (command == JaRuleEndpoint::RDM_BROADCAST_REQUEST &&
+             return_code == RC_OK) {
+    status_code = rdm::RDM_WAS_BROADCAST;
+  } else if (command == JaRuleEndpoint::RDM_BROADCAST_REQUEST &&
+             return_code == RC_RDM_BCAST_RESPONSE) {
+    if (payload.size() > sizeof(GetSetTiming)) {
+      response = UnpackRDMResponse(
+          request.get(), payload.substr(sizeof(GetSetTiming)),
+          &status_code);
+    }
+  } else if (command == JaRuleEndpoint::RDM_REQUEST &&
+             return_code == RC_OK) {
+    if (payload.size() > sizeof(GetSetTiming)) {
+      GetSetTiming timing;
+      memcpy(reinterpret_cast<uint8_t*>(&timing),
+             payload.data(), sizeof(timing));
+      OLA_INFO << "Response time " << (timing.break_start / 10.0)
+               << "uS, Break: "
+               << (timing.mark_start - timing.break_start) / 10.0
+               << "uS, Mark: " << (timing.mark_end - timing.mark_start) / 10.0
+               << "uS";
+      response = UnpackRDMResponse(
+          request.get(), payload.substr(sizeof(GetSetTiming)),
+          &status_code);
+
+      // TODO(simon): Add timing info here.
+      frames.push_back(
+          ola::rdm::RDMFrame(payload.substr(sizeof(GetSetTiming))));
+    }
+  } else if (return_code == RC_RDM_TIMEOUT) {
+    status_code = rdm::RDM_TIMEOUT;
+  } else if (return_code == RC_TX_ERROR || return_code == RC_BUFFER_FULL) {
+    status_code = rdm::RDM_FAILED_TO_SEND;
   } else {
-    switch (rc) {
-      case RC_OK:
-        response = UnpackRDMResponse(
-            request.get(), message.payload + 1, message.payload_size - 1,
-            &response_code);
-        break;
-      case RC_TX_ERROR:
-        response_code = rdm::RDM_FAILED_TO_SEND;
-        break;
-      case RC_RX_TIMEOUT:
-        response_code = rdm::RDM_TIMEOUT;
-        break;
-      default:
-        OLA_WARN << "Unknown Ja Rule RDM RC: " << ToHex(rc);
-        response_code = rdm::RDM_FAILED_TO_SEND;
-        break;
-    }
+    OLA_WARN << "Unknown Ja Rule RDM RC: " << ToHex(return_code);
+    status_code = rdm::RDM_FAILED_TO_SEND;
   }
-  callback->Run(response_code, response, packets);
+
+  RDMReply reply(status_code, response, frames);
+  callback->Run(&reply);
 }
 
 ola::rdm::RDMResponse* JaRuleWidgetImpl::UnpackRDMResponse(
     const RDMRequest *request,
-    const uint8_t *data,
-    unsigned int length,
-    ola::rdm::rdm_response_code *response_code) {
-
-  // TODO(simon): remove this.
-  ola::strings::FormatData(&std::cout, data, length);
-
-  if (length <= 1 || data[0] != RDMCommand::START_CODE) {
-    *response_code = rdm::RDM_INVALID_RESPONSE;
+    const ByteString &payload,
+    ola::rdm::RDMStatusCode *status_code) {
+  if (payload.empty() || payload[0] != RDMCommand::START_CODE) {
+    *status_code = rdm::RDM_INVALID_RESPONSE;
     return NULL;
   }
 
   return ola::rdm::RDMResponse::InflateFromData(
-      data + 1, length - 1, response_code, request);
+      payload.data() + 1, payload.size() - 1, status_code, request);
 }
 
 void JaRuleWidgetImpl::DiscoveryComplete(RDMDiscoveryCallback *callback,
                                          OLA_UNUSED bool ok,
                                          const UIDSet& uids) {
-  OLA_DEBUG << "Discovery complete: " << uids;
   m_uids = uids;
   if (callback) {
     callback->Run(m_uids);
   }
+}
+
+JaRuleEndpoint::CommandClass JaRuleWidgetImpl::GetCommandFromRequest(
+      const ola::rdm::RDMRequest *request) {
+  if (request->IsDUB()) {
+    return JaRuleEndpoint::RDM_DUB;
+  }
+  return request->DestinationUID().IsBroadcast() ?
+      JaRuleEndpoint::RDM_BROADCAST_REQUEST :
+      JaRuleEndpoint::RDM_REQUEST;
 }
 }  // namespace usbdmx
 }  // namespace plugin

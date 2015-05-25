@@ -51,7 +51,7 @@ using ola::rdm::RDMRequest;
 using ola::rdm::RDMResponse;
 using ola::rdm::RDMSetRequest;
 using ola::rdm::UID;
-using ola::rdm::rdm_response_code;
+using ola::rdm::RDMStatusCode;
 using ola::strings::ToHex;
 using ola::thread::Thread;
 using ola::utils::JoinUInt8;
@@ -122,6 +122,9 @@ class MessageHandler : public JaRuleEndpoint::MessageHandlerInterface {
         PrintTime(message, TENTHS_OF_MILLI_SECONDS);
         break;
       case JaRuleEndpoint::SET_RDM_BROADCAST_LISTEN:
+        PrintAck(message);
+        break;
+      case JaRuleEndpoint::RDM_BROADCAST_REQUEST:
         PrintAck(message);
         break;
       default:
@@ -207,7 +210,8 @@ class MessageHandler : public JaRuleEndpoint::MessageHandlerInterface {
 
 
   void PrintDUBResponse(const Message& message) {
-    OLA_INFO << "Got response of size " << message.payload_size;
+    OLA_INFO << "DUB Response: RC: " << static_cast<int>(message.return_code)
+             << ", size: " << message.payload_size;
   }
 
   void PrintResponse(const Message& message) {
@@ -219,10 +223,10 @@ class MessageHandler : public JaRuleEndpoint::MessageHandlerInterface {
     }
 
     if (message.payload[0] == RDMCommand::START_CODE) {
-      rdm_response_code response_code;
+      RDMStatusCode status_code;
       // SKip over the start code.
       auto_ptr<RDMResponse> response(RDMResponse::InflateFromData(
-          message.payload + 1, message.payload_size - 1, &response_code));
+          message.payload + 1, message.payload_size - 1, &status_code));
 
       if (!response.get()) {
         OLA_WARN << "Failed to inflate RDM response";
@@ -430,7 +434,7 @@ class InputHandler {
     cout << " r - Reset" << endl;
     cout << " t - Send DMX frame" << endl;
     cout << " u - Send a broadcast unmute" << endl;
-    cout << " M - Send an unmute to " << m_target_uid << endl;
+    cout << " U - Send an unmute to " << m_target_uid << endl;
     cout << " w - Write Log" << endl;
     cout << " x - Get RDM Wait time" << endl;
     cout << " X - Set RDM Wait time" << endl;
@@ -692,7 +696,10 @@ class InputHandler {
     unsigned int rdm_length = RDMCommandSerializer::RequiredSize(*request);
     uint8_t data[rdm_length];
     RDMCommandSerializer::Pack(*request, data, &rdm_length);
-    m_device->SendMessage(JaRuleEndpoint::RDM_REQUEST, data, rdm_length);
+    m_device->SendMessage(
+        target.IsBroadcast() ? JaRuleEndpoint::RDM_BROADCAST_REQUEST :
+          JaRuleEndpoint::RDM_REQUEST,
+        data, rdm_length);
   }
 
   void WriteLog() {
