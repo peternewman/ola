@@ -195,8 +195,6 @@ class InputHandler {
   Mode m_mode;
   UID m_selected_uid;
 
-  unsigned int m_log_count;
-
   void SetIdentify(bool identify_on) {
     JaRuleWidget *widget = m_widget_manager->GetWidget();
     if (!widget) {
@@ -210,9 +208,8 @@ class InputHandler {
 
     uint8_t param_data = identify_on;
     RDMSetRequest *request = new RDMSetRequest(
-        m_widget_uid, m_selected_uid, 0, 0, 0, 0,
-        ola::rdm::PID_IDENTIFY_DEVICE, &param_data,
-        sizeof(param_data));
+        m_widget_uid, m_selected_uid, 0, 0, 0, ola::rdm::PID_IDENTIFY_DEVICE,
+        &param_data, sizeof(param_data));
     widget->SendRDMRequest(request, NULL);
   }
 
