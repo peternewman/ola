@@ -485,7 +485,7 @@ void OlaServerServiceImpl::GetPluginState(
 }
 
 void OlaServerServiceImpl::SetPluginState(
-    RpcController*,
+    RpcController *controller,
     const ola::proto::PluginStateChangeRequest* request,
     Ack*,
     ola::rpc::RpcService::CompletionCallback* done) {
@@ -496,7 +496,13 @@ void OlaServerServiceImpl::SetPluginState(
   if (plugin) {
     OLA_DEBUG << "SetPluginState to " << request->enabled()
               << " for plugin " << plugin->Name();
-    plugin->SetEnabledState(request->enabled());
+    if (request->enabled()) {
+      if (!m_plugin_manager->EnableAndStartPlugin(plugin_id)) {
+        controller->SetFailed("Failed to start plugin: " + plugin->Name());
+      }
+    } else {
+      m_plugin_manager->DisableAndStopPlugin(plugin_id);
+    }
   }
 }
 
