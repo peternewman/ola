@@ -431,7 +431,7 @@ void OlaServerServiceImpl::GetPlugins(
 void OlaServerServiceImpl::ReloadPlugins(
     RpcController*,
     const ::ola::proto::PluginReloadRequest*,
-    ola::proto::Ack*,
+    Ack*,
     ola::rpc::RpcService::CompletionCallback* done) {
   ClosureRunner runner(done);
   if (m_reload_plugins_callback.get()) {
@@ -481,6 +481,28 @@ void OlaServerServiceImpl::GetPluginState(
     }
   } else {
     controller->SetFailed("Plugin not loaded");
+  }
+}
+
+void OlaServerServiceImpl::SetPluginState(
+    RpcController *controller,
+    const ola::proto::PluginStateChangeRequest* request,
+    Ack*,
+    ola::rpc::RpcService::CompletionCallback* done) {
+  ClosureRunner runner(done);
+  ola_plugin_id plugin_id = (ola_plugin_id) request->plugin_id();
+  AbstractPlugin *plugin = m_plugin_manager->GetPlugin(plugin_id);
+
+  if (plugin) {
+    OLA_DEBUG << "SetPluginState to " << request->enabled()
+              << " for plugin " << plugin->Name();
+    if (request->enabled()) {
+      if (!m_plugin_manager->EnableAndStartPlugin(plugin_id)) {
+        controller->SetFailed("Failed to start plugin: " + plugin->Name());
+      }
+    } else {
+      m_plugin_manager->DisableAndStopPlugin(plugin_id);
+    }
   }
 }
 
@@ -785,7 +807,7 @@ void OlaServerServiceImpl::RDMDiscoveryCommand(
 void OlaServerServiceImpl::SetSourceUID(
     RpcController *controller,
     const ola::proto::UID* request,
-    ola::proto::Ack*,
+    Ack*,
     ola::rpc::RpcService::CompletionCallback* done) {
   ClosureRunner runner(done);
 
@@ -796,7 +818,7 @@ void OlaServerServiceImpl::SetSourceUID(
 void OlaServerServiceImpl::SendTimeCode(
     RpcController* controller,
     const ola::proto::TimeCode* request,
-    ola::proto::Ack*,
+    Ack*,
     ola::rpc::RpcService::CompletionCallback* done) {
   ClosureRunner runner(done);
   ola::timecode::TimeCode time_code(
