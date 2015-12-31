@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -13,7 +13,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
-# model_collector.py
+# rdm_model_collector.py
 # Copyright (C) 2011 Simon Newton
 
 '''Quick script to collect information about responders.'''
@@ -29,9 +29,7 @@ import textwrap
 from ola import PidStore
 from ola.testing.rdm.ModelCollector import ModelCollector
 from ola.ClientWrapper import ClientWrapper
-from ola.OlaClient import OlaClient, RDMNack
-from ola.RDMAPI import RDMAPI
-from ola.UID import UID
+
 
 def Usage():
   print textwrap.dedent("""\

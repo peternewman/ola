@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -24,12 +23,11 @@ __author__ = 'nomis52@gmail.com (Simon Newton)'
 import logging
 import ola.RDMConstants
 from ola import PidStore
-from ola.ClientWrapper import ClientWrapper
 from ola.OlaClient import OlaClient, RDMNack
 from ola.RDMAPI import RDMAPI
-from ola.UID import UID
 
 DEFAULT_LANGUAGE = "en"
+
 
 class Error(Exception):
   """Base exception class."""
@@ -139,7 +137,7 @@ class ModelCollector(object):
   def _HandleUIDList(self, state, uids):
     """Called when the UID list arrives."""
     if not state.Succeeded():
-      raise DiscoveryException(state.message )
+      raise DiscoveryException(state.message)
 
     found_uids = set()
     for uid in uids:
@@ -508,7 +506,7 @@ class ModelCollector(object):
     if (response.response_type == OlaClient.RDM_NACK_REASON and
         response.pid != self.pid_store.GetName('SLOT_DESCRIPTION').value):
       print ('Got nack with reason for pid %s: %s' %
-          (response.pid, response.nack_reason))
+             (response.pid, response.nack_reason))
       self._NextState()
     elif unpack_exception:
       print unpack_exception

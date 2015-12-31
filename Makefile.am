@@ -122,7 +122,7 @@ test_scripts =
 # -----------------------------------------------------------------------------
 
 # Since `make install` relinks the libraries, this should be in the order in
-# which libraries depend on each other. e.g. common, plugins, server.
+# which libraries depend on each other. e.g. common, plugin_api, plugins, server.
 include common/Makefile.mk
 include data/Makefile.mk
 include debian/Makefile.mk
@@ -131,7 +131,12 @@ include examples/Makefile.mk
 include include/Makefile.mk
 include javascript/Makefile.mk
 include man/Makefile.mk
+include libs/Makefile.mk
 include ola/Makefile.mk
+# olad/plugin_api/Makefile.mk is included directly due to the order of
+# dependencies between them; we need to build olad/plugin_api, then the
+# plugins, then olad
+include olad/plugin_api/Makefile.mk
 include plugins/Makefile.mk
 include olad/Makefile.mk
 include protoc/Makefile.mk
@@ -189,6 +194,4 @@ EXTRA_DIST += \
   config/resolv.m4 \
   config/stl_hash.m4 \
   mac_build.sh \
-  ola.spec \
-  tests/recvdmx.py \
-  tests/regression.py
+  ola.spec
