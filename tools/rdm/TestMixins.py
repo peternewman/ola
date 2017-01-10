@@ -15,14 +15,6 @@
 # TestMixins.py
 # Copyright (C) 2010 Simon Newton
 
-'''Mixins used by the test definitions.
-
-This module contains classes which can be inherited from to simplify writing
-test definitions.
-'''
-
-__author__ = 'nomis52@gmail.com (Simon Newton)'
-
 import struct
 from ExpectedResults import (AckGetResult, AckDiscoveryResult, BroadcastResult,
                              DUBResult, NackSetResult, TimeoutResult,
@@ -37,6 +29,15 @@ from ola.OlaClient import OlaClient, RDMNack
 from ola.PidStore import ROOT_DEVICE
 from ola.RDMConstants import RDM_MAX_STRING_LENGTH
 from ola.UID import UID
+
+'''Mixins used by the test definitions.
+
+This module contains classes which can be inherited from to simplify writing
+test definitions.
+'''
+
+__author__ = 'nomis52@gmail.com (Simon Newton)'
+
 
 MAX_DMX_ADDRESS = DMX_UNIVERSE_SIZE
 
@@ -986,7 +987,7 @@ class GetSettingDescriptionsMixin(object):
     self.items = self.ListOfSettings()
     if not self.items:
       # Try to GET first item, this should NACK
-      self.AddIfGetSupported(self.NackSetResult(RDMNack.NR_DATA_OUT_OF_RANGE))
+      self.AddIfGetSupported(self.NackGetResult(RDMNack.NR_DATA_OUT_OF_RANGE))
       self.SendGet(ROOT_DEVICE, self.pid, [self.FIRST_INDEX_OFFSET])
       return
 

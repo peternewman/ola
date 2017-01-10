@@ -16,16 +16,15 @@
 # setup_patch.py
 # Copyright (C) 2012 Simon Newton
 
+import logging
+from ola.ClientWrapper import ClientWrapper
+from ola.OlaClient import OlaClient, Plugin
+
 """A simple script to find all RDM enabled ports and auto-patch them to
 universes.
 """
 
 __author__ = 'nomis52@gmail.com (Simon Newton)'
-
-
-import logging
-from ola.ClientWrapper import ClientWrapper
-from ola.OlaClient import OlaClient, Plugin
 
 
 class AutoPatcher(object):
@@ -153,6 +152,7 @@ def main():
            (patch_results.ports_patched, patch_results.ports_found))
   else:
     print 'Failed to patch'
+
 
 if __name__ == '__main__':
     main()

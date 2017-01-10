@@ -16,11 +16,6 @@
 # rdm_model_collector.py
 # Copyright (C) 2011 Simon Newton
 
-'''Quick script to collect information about responders.'''
-
-__author__ = 'nomis52@gmail.com (Simon Newton)'
-
-
 import getopt
 import logging
 import pprint
@@ -29,6 +24,10 @@ import textwrap
 from ola import PidStore
 from ola.testing.rdm.ModelCollector import ModelCollector
 from ola.ClientWrapper import ClientWrapper
+
+'''Quick script to collect information about responders.'''
+
+__author__ = 'nomis52@gmail.com (Simon Newton)'
 
 
 def Usage():
@@ -88,6 +87,7 @@ def main():
   controller = ModelCollector(client_wrapper, pid_store)
   data = controller.Run(universe, skip_queued_messages)
   pprint.pprint(data)
+
 
 if __name__ == '__main__':
   main()

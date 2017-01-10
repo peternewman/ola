@@ -9,8 +9,8 @@ AC_CONFIG_AUX_DIR([config])
 AC_SUBST([ac_aux_dir])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([config])
-# 'AM_PROG_AR' was introduced in Automake 1.11.2
-AM_INIT_AUTOMAKE([1.11.2 subdir-objects])
+# Make us require Automake 1.11.1
+AM_INIT_AUTOMAKE([1.11.1 subdir-objects])
 
 # OLA version variables
 AC_SUBST([ola_major_version])
@@ -27,7 +27,6 @@ AC_SUBST(OLA_REVISION_VERSION)
 AC_LANG([C++])
 AC_PROG_CXX
 AC_PROG_AWK
-AM_PROG_AR
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -35,12 +34,52 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
+# check if the compiler supports -std=gnu++98
+AC_MSG_CHECKING(for -std=gnu++98 support)
+old_cxxflags=$CXXFLAGS
+CXXFLAGS="${CXXFLAGS} -std=gnu++98 -Wall -Werror"
+AC_CACHE_VAL(ac_cv_gnu_plus_plus_98,
+  AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([], [])],
+     [ac_cv_gnu_plus_plus_98=yes],
+     [ac_cv_gnu_plus_plus_98=no])
+)
+CXXFLAGS=$old_cxxflags
+AC_MSG_RESULT($ac_cv_gnu_plus_plus_98)
+
+AM_CONDITIONAL([SUPPORTS_GNU_PLUS_PLUS_98], [test "x$ac_cv_gnu_plus_plus_98" = xyes])
+
+# check if the compiler supports -std=gnu++11
+AC_MSG_CHECKING(for -std=gnu++11 support)
+old_cxxflags=$CXXFLAGS
+CXXFLAGS="${CXXFLAGS} -std=gnu++11 -Wall -Werror"
+AC_CACHE_VAL(ac_cv_gnu_plus_plus_11,
+  AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([], [])],
+     [ac_cv_gnu_plus_plus_11=yes],
+     [ac_cv_gnu_plus_plus_11=no])
+)
+CXXFLAGS=$old_cxxflags
+AC_MSG_RESULT($ac_cv_gnu_plus_plus_11)
+
+AM_CONDITIONAL([SUPPORTS_GNU_PLUS_PLUS_11], [test "x$ac_cv_gnu_plus_plus_11" = xyes])
+
+# force us into gnu++98 mode if necessary
+AS_IF([test "x$ac_cv_gnu_plus_plus_11" = xyes],
+      [AS_IF([test "x$ac_cv_gnu_plus_plus_98" = xyes],
+             [CXXFLAGS="$CXXFLAGS -std=gnu++98"],
+             [AC_MSG_WARN([OLA requires std::auto_ptr support.])])
+      ])
+
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_RESOLV
 AC_HEADER_STDC
+# Required headers (we cannot work without these)
+AC_CHECK_HEADERS([errno.h],[],[AC_MSG_ERROR([Missing a required header])])
+# Other headers (we can work without these, but may need to modify things slightly)
 AC_CHECK_HEADERS([arpa/inet.h bits/sockaddr.h fcntl.h float.h limits.h malloc.h netinet/in.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/socket.h sys/time.h sys/timeb.h syslog.h termios.h unistd.h])
-AC_CHECK_HEADERS([asm/termios.h assert.h dlfcn.h endian.h errno.h execinfo.h \
+AC_CHECK_HEADERS([asm/termios.h assert.h dlfcn.h endian.h execinfo.h \
                   linux/if_packet.h math.h net/ethernet.h stropts.h \
                   sys/param.h sys/types.h sys/uio.h sysexits.h])
 AC_CHECK_HEADERS([winsock2.h])
@@ -412,22 +451,25 @@ AS_IF([test "x$use_ossp_uuid" = xyes],
 
 # DNS-SD support
 # We use either avahi or the Apple DNS-SD library.
+AC_ARG_WITH(dns-sd,
+[AS_HELP_STRING([--without-dns-sd], [disable DNS-SD support])],,)
+if test "x$with_dns_sd" != "xno"; then
+	# dns_sd
+	AC_CHECK_HEADER(
+	  [dns_sd.h],
+	  [AC_SEARCH_LIBS(DNSServiceRegister, [dns_sd], [have_dnssd="yes"])])
 
-# dns_sd
-AC_CHECK_HEADER(
-  [dns_sd.h],
-  [AC_SEARCH_LIBS(DNSServiceRegister, [dns_sd], [have_dnssd="yes"])])
+	# avahi
+	PKG_CHECK_MODULES(
+	  avahi,
+	  [avahi-client],
+	  [have_avahi="yes"],
+	  [true])
+fi
 
 AS_IF([test "x$have_dnssd" = xyes],
       [AC_DEFINE([HAVE_DNSSD], [1], [Defined to use Bonjour DNS_SD])])
 AM_CONDITIONAL([HAVE_DNSSD], [test "x$have_dnssd" = xyes])
-
-# avahi
-PKG_CHECK_MODULES(
-  avahi,
-  [avahi-client],
-  [have_avahi="yes"],
-  [true])
 
 AS_IF([test "x$have_avahi" = xyes],
       [AC_DEFINE([HAVE_AVAHI], [1], [Defined to use Avahi])])
@@ -445,7 +487,7 @@ AC_ARG_ENABLE(
   [unittests],
   [AS_HELP_STRING([--disable-unittests], [Disable all unittests])])
 AS_IF([test "x$enable_unittests" != xno],
-      [AM_PATH_CPPUNIT([1.9.6], [],
+      [PKG_CHECK_MODULES([CPPUNIT], [cppunit >= 1.9.6], [],
           [AC_MSG_ERROR([Missing cppunit, please install >= 1.9.6])])
       ])
 AM_CONDITIONAL([BUILD_TESTS], [test "x$enable_unittests" != xno])
@@ -678,6 +720,13 @@ AS_IF([test "${enable_python_libs}" = "yes"],
           [ac_cv_have_pymod_google_protobuf],
           [AX_PYTHON_MODULE([google.protobuf], [fatal])
            eval ac_cv_have_pymod_google_protobuf=\$AS_TR_CPP([HAVE_PYMOD_google.protobuf])])
+     ])
+
+AS_IF([test "${enable_rdm_tests}" = "yes"],
+      [AC_CACHE_CHECK([for $PYTHON_NAME module: numpy],
+          [ac_cv_have_pymod_numpy],
+          [AX_PYTHON_MODULE([numpy], [fatal])
+           eval ac_cv_have_pymod_numpy=\$AS_TR_CPP([HAVE_PYMOD_numpy])])
      ])
 
 # Libraries, that depend on the feature args above.

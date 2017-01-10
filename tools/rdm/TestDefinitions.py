@@ -15,10 +15,6 @@
 # TestDefinitions.py
 # Copyright (C) 2010 Simon Newton
 
-'''This defines all the tests for RDM responders.'''
-
-__author__ = 'nomis52@gmail.com (Simon Newton)'
-
 import datetime
 import operator
 import struct
@@ -44,6 +40,11 @@ from ola.UID import UID
 from TestHelpers import ContainsUnprintable
 import TestMixins
 from TestMixins import MAX_DMX_ADDRESS
+
+'''This defines all the tests for RDM responders.'''
+
+__author__ = 'nomis52@gmail.com (Simon Newton)'
+
 
 MAX_PERSONALITY_NUMBER = 255
 
@@ -194,12 +195,18 @@ class InvalidDiscoveryPID(ResponderTestFixture):
 class MuteAllDevices(ResponderTestFixture):
   """Mute all devices, so we can perform DUB tests"""
   PID = 'DISC_MUTE'
+  REQUIRES = ['mute_supported']
   # This is a fake property used to ensure this tests runs before the DUB tests.
   PROVIDES = ['global_mute']
 
   def Test(self):
     # Set the fake property
     self.SetProperty(self.PROVIDES[0], True)
+    if not (self.Property('mute_supported')):
+      self.SetNotRun('RDM Controller does not support DISCOVERY commands')
+      self.Stop()
+      return
+
     self.AddExpectedResults([
       BroadcastResult(),
       UnsupportedResult()
@@ -2216,9 +2223,10 @@ class GetSlotInfo(OptionalParameterTestFixture):
 
       if slot['slot_type'] == RDMConstants.SLOT_TYPES['ST_PRIMARY']:
         # slot_label_id must be valid
-        if ((slot['slot_label_id'] not in RDMConstants.SLOT_DEFINITION_TO_NAME)
-            and (slot['slot_label_id'] < RDM_MANUFACTURER_SD_MIN or
-                 slot['slot_label_id'] > RDM_MANUFACTURER_SD_MAX)):
+        if ((slot['slot_label_id'] not in
+             RDMConstants.SLOT_DEFINITION_TO_NAME) and
+            (slot['slot_label_id'] < RDM_MANUFACTURER_SD_MIN or
+             slot['slot_label_id'] > RDM_MANUFACTURER_SD_MAX)):
           self.AddWarning('Unknown slot id %d for slot %d' %
                           (slot['slot_label_id'], slot['slot_offset']))
         if (slot['slot_label_id'] ==
