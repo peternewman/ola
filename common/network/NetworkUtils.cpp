@@ -623,6 +623,10 @@ bool DefaultRoute(int32_t *if_index, IPV4Address *default_gateway) {
     OLA_WARN << "GetIpForwardTable failed with " << GetLastError();
     return false;
   }
+#elif defined(__GNU__)
+  // TODO(Peter): Do something on Hurd machines to get the default route
+  OLA_WARN << "DefaultRoute not currently implemented in OLA for GNU Hurd";
+  return false;
 #else
 #error "DefaultRoute not implemented for this platform, please report this."
   // TODO(Peter): Do something else on machines without Netlink
