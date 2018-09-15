@@ -532,6 +532,8 @@ AM_CONDITIONAL([HAVE_AVAHI], [test "x$have_avahi" = xyes])
 # Look for -lSaleaeDevice, if we have it we build the logic sniffer.
 SALEAE_DEVICE
 
+# Look for -lLsHardDevKit, if we have it, build the Nicolaudie plugin
+NICOLAUDIE_DEVICE
 
 # Features
 #####################################################
@@ -861,6 +863,7 @@ PLUGIN_SUPPORT(karate, USE_KARATE)
 PLUGIN_SUPPORT(kinet, USE_KINET)
 PLUGIN_SUPPORT(milinst, USE_MILINST)
 PLUGIN_SUPPORT(nanoleaf, USE_NANOLEAF)
+PLUGIN_SUPPORT(nicolaudie, USE_NICOLAUDIE, [$have_nicolaudie])
 PLUGIN_SUPPORT(opendmx, USE_OPENDMX, [$have_not_win32])
 PLUGIN_SUPPORT(openpixelcontrol, USE_OPENPIXELCONTROL)
 PLUGIN_SUPPORT(osc, USE_OSC, [$have_liblo])
