@@ -39,7 +39,8 @@ AC_DEFUN([NICOLAUDIE_DEVICE],
   LIBS="${LIBS} ${libLsHardDevKit_LIBS}"
   AC_LINK_IFELSE(
     [AC_LANG_PROGRAM([#include <LsHardDevKit.h>],
-                       [DHDK_init(DHDK_DASUSB|DHDK_DASNET, "ac_nicolaudie.m4")])],
+                     [[DHDK_init(DHDK_DASUSB|DHDK_DASNET, "ac_nicolaudie.m4");
+                       DHDK_deinit();]])],
     [have_nicolaudie=yes],
     [have_nicolaudie=no])
   LIBS=$old_libs

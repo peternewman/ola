@@ -63,6 +63,10 @@
 #include "plugins/nanoleaf/NanoleafPlugin.h"
 #endif  // USE_NANOLEAF
 
+#ifdef USE_NICOLAUDIE
+#include "plugins/nicolaudie/NicolaudiePlugin.h"
+#endif  // USE_NICOLAUDIE
+
 #ifdef USE_OPENDMX
 #include "plugins/opendmx/OpenDmxPlugin.h"
 #endif  // USE_OPENDMX
@@ -185,6 +189,11 @@ void DynamicPluginLoader::PopulatePlugins() {
   m_plugins.push_back(
       new ola::plugin::nanoleaf::NanoleafPlugin(m_plugin_adaptor));
 #endif  // USE_NANOLEAF
+
+#ifdef USE_NICOLAUDIE
+  m_plugins.push_back(
+      new ola::plugin::nicolaudie::NicolaudiePlugin(m_plugin_adaptor));
+#endif  // USE_NICOLAUDIE
 
 #ifdef USE_OPENDMX
   m_plugins.push_back(
