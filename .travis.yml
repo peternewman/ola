@@ -108,6 +108,9 @@ matrix:
            - *core_build_gpp_latest
           sources:
            - ubuntu-toolchain-r-test
+    - os: windows
+      compiler: gcc
+      env: TASK='compile'
     - os: linux
       dist: trusty
       compiler: gcc
