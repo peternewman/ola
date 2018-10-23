@@ -266,7 +266,8 @@ install:
 # We need to use pip rather than apt on Trusty
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user numpy; fi
 # Windows packages
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install msys2 mingw protoc winflexbison; fi
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install protoc winflexbison --not-silent; fi
+  # msys2 mingw
 # Specific task requirements
   - if [ "$TASK" = "coverage" ]; then pip install --user cpp-coveralls; fi
   - if [ "$TASK" = "flake8" ]; then pip install --user flake8; fi
