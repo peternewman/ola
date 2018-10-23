@@ -265,6 +265,9 @@ install:
   - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then pip install --user protobuf==3.1.0; fi
 # We need to use pip rather than apt on Trusty
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user numpy; fi
+# Windows packages
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install msys2 mingw protoc winflexbison; fi
+# Specific task requirements
   - if [ "$TASK" = "coverage" ]; then pip install --user cpp-coveralls; fi
   - if [ "$TASK" = "flake8" ]; then pip install --user flake8; fi
   - if [ "$TASK" = "codespell" ]; then pip install --user git+https://github.com/codespell-project/codespell.git; fi
