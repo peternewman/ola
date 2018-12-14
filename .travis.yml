@@ -99,9 +99,32 @@ matrix:
            - llvm-toolchain-xenial-6.0
     - os: linux
       dist: xenial
+      compiler: clang
+      env: TASK='compile'
+      python: '3.6'
+      addons:
+        apt:
+          packages:
+           - *core_build_clang_latest
+          sources:
+           - ubuntu-toolchain-r-test
+           - llvm-toolchain-xenial-6.0
+    - os: linux
+      dist: xenial
       compiler: gcc
       env: TASK='compile'
       python: '2.7'
+      addons:
+        apt:
+          packages:
+           - *core_build_gpp_latest
+          sources:
+           - ubuntu-toolchain-r-test
+    - os: linux
+      dist: xenial
+      compiler: gcc
+      env: TASK='compile'
+      python: '3.6'
       addons:
         apt:
           packages:
@@ -191,6 +214,15 @@ matrix:
           packages:
     - os: linux
       dist: xenial
+      python: '2.7'
+      env: TASK='flake8'
+      addons:
+        apt:
+          packages:
+           - *base_build
+    - os: linux
+      dist: xenial
+      python: '3.6'
       env: TASK='flake8'
       addons:
         apt:
