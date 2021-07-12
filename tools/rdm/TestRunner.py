@@ -42,8 +42,8 @@ class MissingPropertyException(Error):
   """
 
 
-class CircularDepdendancyException(Error):
-  """Raised if there is a circular depdendancy created by PROVIDES &
+class CircularDependencyException(Error):
+  """Raised if there is a circular dependency created by PROVIDES &
      REQUIRES statements.
   """
 
@@ -274,7 +274,7 @@ class TestRunner(object):
 
     Returns:
       A tuple in the form (tests, device), where tests is a list of tests that
-      exectuted, and device is an instance of DeviceProperties.
+      executed, and device is an instance of DeviceProperties.
     """
     device = DeviceProperties(self._property_map.keys())
     if whitelist is None:
@@ -397,8 +397,8 @@ class TestRunner(object):
     dep_objects = []
     for dep_class in dep_classes:
       if dep_class in new_parents:
-        raise CircularDepdendancyException(
-            'Circular depdendancy found %s in %s' % (dep_class, new_parents))
+        raise CircularDependencyException(
+            'Circular dependency found %s in %s' % (dep_class, new_parents))
       obj = self._AddTest(device,
                           class_name_to_object,
                           deps_map,
@@ -420,9 +420,9 @@ class TestRunner(object):
     tests = []
 
     remaining_tests = [
-        test for test, deps in deps_dict.iteritems() if len(deps)]
+        test for test, deps in deps_dict.items() if len(deps)]
     no_deps = set(
-        test for test, deps in deps_dict.iteritems() if len(deps) == 0)
+        test for test, deps in deps_dict.items() if len(deps) == 0)
 
     while len(no_deps) > 0:
       current_test = no_deps.pop()
