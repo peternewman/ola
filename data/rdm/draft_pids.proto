@@ -1,1 +1,1858 @@
-version: 1605848134
+pid {
+  name: "IFC_SESSION_CONTROL"
+  value: 
+  get_request {
+  }
+  get_response {
+    field {
+      type: UINT16
+      name: "session_id"
+    }
+    field {
+      type: UINT16
+      name: "time"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT16
+      name: "session_id"
+    }
+    field {
+      type: UINT8
+      name: "session_operations"
+      label {
+        value: 0
+        label: "Discard"
+      }
+      label {
+        value: 1
+        label: "Commit Running"
+      }
+      label {
+        value: 2
+        label: "Commit Running Persistent"
+      }
+      label {
+        value: 3
+        label: "Confirm"
+      }
+    }
+    field {
+      type: UINT16
+      name: "time"
+    }
+  }
+  set_response {
+  }
+  set_sub_device_range: ROOT_OR_ALL_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_ID_LIST"
+  value: 
+  get_request {
+  }
+  get_response {
+    field {
+      type: GROUP
+      name: "interfaces"
+      field {
+        type: UINT32
+        name: "interface_id"
+        range {
+          min: 1
+          max: 4294967295
+        }
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_PARENT"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT32
+      name: "parent_id"
+      label {
+        value: 0
+        label: "Root"
+      }
+      range {
+        min: 0
+        max: 4294967295
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_ENABLE"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "interface_state"
+      label {
+        value: 0
+        label: "Disable"
+      }
+      label {
+        value: 1
+        label: "Enable"
+      }
+      label {
+        value: 2
+        label: "Bounce"
+      }
+      label {
+        value: 3
+        label: "Not Present"
+      }
+      label {
+        value: 4
+        label: "Unknown"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "interface_state"
+      label {
+        value: 0
+        label: "Disable"
+      }
+      label {
+        value: 1
+        label: "Enable"
+      }
+      label {
+        value: 2
+        label: "Bounce"
+      }
+    }
+    field {
+      type: UINT8
+      name: "time"
+    }
+  }
+  set_response {
+  }
+  set_sub_device_range: ROOT_OR_ALL_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_HARDWARE_ADDRESS"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "hardware_address_type"
+      label {
+        value: 0
+        label: "EUI-48"
+      }
+      label {
+        value: 1
+        label: "EUI-64"
+      }
+    }
+    field {
+      type: GROUP
+      name: "hardware_address"
+      min: 6
+      max: 8
+      field {
+        type: UINT8
+        name: "byte"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_FIXED_LABEL"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: STRING
+      name: "fixed_label"
+      max_size: 32
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_USER_LABEL"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: STRING
+      name: "user_label"
+      max_size: 32
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: STRING
+      name: "user_label"
+      max_size: 32
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_TYPE"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT8
+      name: "interface_type"
+      label {
+        value: 0
+        label: "Unknown"
+      }
+      label {
+        value: 1
+        label: "Virtual"
+      }
+      label {
+        value: 2
+        label: "Wired"
+      }
+      label {
+        value: 3
+        label: "Optical Fiber"
+      }
+      label {
+        value: 4
+        label: "Wireless RF"
+      }
+      label {
+        value: 5
+        label: "Wireless Optical"
+      }
+      label {
+        value: 6
+        label: "Combination"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_LINE_SPEED"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT64
+      name: "line_speed"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_UTILIZATION"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT64
+      name: "utilization"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_DUPLEX_MODE"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT8
+      name: "duplex_mode"
+      label {
+        value: 0
+        label: "Half"
+      }
+      label {
+        value: 1
+        label: "Full"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_EEE"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT8
+      name: "eee_state"
+      label {
+        value: 0
+        label: "Disable"
+      }
+      label {
+        value: 1
+        label: "Enable"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "eee_state"
+      label {
+        value: 0
+        label: "Disable"
+      }
+      label {
+        value: 1
+        label: "Enable"
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_POWER_ENABLE"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT8
+      name: "power_state"
+      label {
+        value: 0
+        label: "Disable"
+      }
+      label {
+        value: 1
+        label: "Enable"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "power_state"
+      label {
+        value: 0
+        label: "Disable"
+      }
+      label {
+        value: 1
+        label: "Enable"
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_POWER_STATUS"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT8
+      name: "ifc_power_type"
+      label {
+        value: 0
+        label: "None"
+      }
+      label {
+        value: 1
+        label: "Type 1 802.3af 2-pair 15.4W PoE"
+      }
+      label {
+        value: 2
+        label: "Type 2 802.3af 2-pair 30W PoE"
+      }
+      label {
+        value: 3
+        label: "Type 3 802.3bt 4-pair 60W PoE"
+      }
+      label {
+        value: 4
+        label: "Type 4 802.3bt 4-pair 90W PoE"
+      }
+      label {
+        value: 5
+        label: "802.3bu Power over Data Line for Single-Pair Ethernet"
+      }
+      label {
+        value: 6
+        label: "Non-standard powering technology"
+      }
+    }
+    field {
+      type: UINT8
+      name: "ifc_power_role"
+      label {
+        value: 0
+        label: "None"
+      }
+      label {
+        value: 1
+        label: "Power sourcing equipment"
+      }
+      label {
+        value: 2
+        label: "Powered device"
+      }
+      label {
+        value: 3
+        label: "Other"
+      }
+    }
+    field {
+      type: UINT16
+      name: "maximum_power_capability"
+      multiplier: -1
+    }
+    field {
+      type: UINT16
+      name: "power_requested"
+      multiplier: -1
+      label {
+        value: 65535
+        label: "Information not available"
+      }
+    }
+    field {
+      type: UINT16
+      name: "power_granted"
+      multiplier: -1
+      label {
+        value: 65535
+        label: "Information not available"
+      }
+    }
+    field {
+      type: UINT16
+      name: "power_consumed"
+      multiplier: -1
+      label {
+        value: 65535
+        label: "Information not available"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV4_ADDRESS"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: GROUP
+      name: "ipv4_addresses"
+      field {
+        type: IPV4
+        name: "ipv4_address"
+      }
+      field {
+        type: UINT8
+        name: "netmask"
+        range {
+          min: 0
+          max: 32
+        }
+      }
+      field {
+        type: UINT8
+        name: "source"
+        label {
+          value: 0
+          label: "DHCP"
+        }
+        label {
+          value: 1
+          label: "Static"
+        }
+        label {
+          value: 2
+          label: "zeroConf"
+        }
+        label {
+          value: 3
+          label: "BOOTP"
+        }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: GROUP
+      name: "ipv4_addresses"
+      field {
+        type: IPV4
+        name: "ipv4_address"
+      }
+      field {
+        type: UINT8
+        name: "netmask"
+        range {
+          min: 0
+          max: 32
+        }
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV4_GATEWAY"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: IPV4
+      name: "ipv4_gateway"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: IPV4
+      name: "ipv4_gateway"
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV4_GATEWAY_REMOVE"
+  value: 
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV4_DNS"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: GROUP
+      name: "ipv4_dns_addresses"
+      field {
+        type: IPV4
+        name: "ipv4_dns_address"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: GROUP
+      name: "ipv4_dns_addresses"
+      field {
+        type: IPV4
+        name: "ipv4_dns_address"
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV4_SUPPORTED_MODES"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: GROUP
+      name: "ipv4_supported_modes"
+      field {
+        type: UINT8
+        name: "ipv4_supported_mode"
+        label {
+          value: 0
+          label: "DHCP, none"
+        }
+        label {
+          value: 1
+          label: "DHCP, zeroconf"
+        }
+        label {
+          value: 2
+          label: "DHCP, static"
+        }
+        label {
+          value: 3
+          label: "DHCP, BOOTP"
+        }
+        label {
+          value: 4
+          label: "BOOTP, static"
+        }
+        label {
+          value: 5
+          label: "BOOTP, none"
+        }
+        label {
+          value: 6
+          label: "Static, none"
+        }
+        label {
+          value: 7
+          label: "zeroconf, none"
+        }
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV4_MODE"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT8
+      name: "ipv4_mode"
+      label {
+        value: 0
+        label: "DHCP, none"
+      }
+      label {
+        value: 1
+        label: "DHCP, zeroconf"
+      }
+      label {
+        value: 2
+        label: "DHCP, static"
+      }
+      label {
+        value: 3
+        label: "DHCP, BOOTP"
+      }
+      label {
+        value: 4
+        label: "BOOTP, static"
+      }
+      label {
+        value: 5
+        label: "BOOTP, none"
+      }
+      label {
+        value: 6
+        label: "Static, none"
+      }
+      label {
+        value: 7
+        label: "zeroconf, none"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "ipv4_mode"
+      label {
+        value: 0
+        label: "DHCP, none"
+      }
+      label {
+        value: 1
+        label: "DHCP, zeroconf"
+      }
+      label {
+        value: 2
+        label: "DHCP, static"
+      }
+      label {
+        value: 3
+        label: "DHCP, BOOTP"
+      }
+      label {
+        value: 4
+        label: "BOOTP, static"
+      }
+      label {
+        value: 5
+        label: "BOOTP, none"
+      }
+      label {
+        value: 6
+        label: "Static, none"
+      }
+      label {
+        value: 7
+        label: "zeroconf, none"
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV4_DHCP_RESULT"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: IPV4
+      name: "dhcpv4_address"
+    }
+    field {
+      type: UINT32
+      name: "lease_time"
+      label {
+        value: 0
+        label: "Unknown"
+      }
+      label {
+        value: 4294967295
+        label: "Infinite"
+      }
+    }
+    field {
+      type: UINT8
+      name: "flags"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_ADDRESS"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: GROUP
+      name: "ipv6_addresses"
+      field {
+        type: IPV6
+        name: "ipv6_address"
+      }
+      field {
+        type: UINT8
+        name: "prefix_length"
+        range {
+          min: 0
+          max: 128
+        }
+      }
+      field {
+        type: UINT8
+        name: "source"
+        label {
+          value: 0
+          label: "DHCP"
+        }
+        label {
+          value: 1
+          label: "Static"
+        }
+        label {
+          value: 2
+          label: "SLAAC"
+        }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: GROUP
+      name: "ipv6_addresses"
+      field {
+        type: IPV6
+        name: "ipv6_address"
+      }
+      field {
+        type: UINT8
+        name: "prefix_length"
+        range {
+          min: 0
+          max: 128
+        }
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_ADDRESS_LINKLOCAL"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: IPV6
+      name: "ipv6_linklocal_address"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_GATEWAY"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: IPV6
+      name: "ipv6_gateway"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: IPV6
+      name: "ipv6_gateway"
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_GATEWAY_REMOVE"
+  value: 
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_DNS"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: GROUP
+      name: "ipv6_dns_addresses"
+      field {
+        type: IPV6
+        name: "ipv6_dns_address"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: GROUP
+      name: "ipv6_dns_addresses"
+      field {
+        type: IPV6
+        name: "ipv6_dns_address"
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_SUPPORTED_MODES"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: GROUP
+      name: "ipv6_supported_modes"
+      field {
+        type: UINT8
+        name: "ipv6_supported_mode"
+        label {
+          value: 0
+          label: "DHCP"
+        }
+        label {
+          value: 1
+          label: "Static"
+        }
+        label {
+          value: 2
+          label: "SLAAC"
+        }
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_MODE"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT8
+      name: "ipv6_mode"
+      label {
+        value: 0
+        label: "DHCP"
+      }
+      label {
+        value: 1
+        label: "Static"
+      }
+      label {
+        value: 2
+        label: "SLAAC"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "ipv6_mode"
+      label {
+        value: 0
+        label: "DHCP"
+      }
+      label {
+        value: 1
+        label: "Static"
+      }
+      label {
+        value: 2
+        label: "SLAAC"
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_IPV6_DHCP_RESULT"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: IPV6
+      name: "dhcpv6_address"
+    }
+    field {
+      type: UINT32
+      name: "lease_time"
+      label {
+        value: 0
+        label: "Unknown"
+      }
+      label {
+        value: 4294967295
+        label: "Infinite"
+      }
+    }
+    field {
+      type: UINT8
+      name: "flags"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_DNS_CAPABILITIES"
+  value: 
+  get_request {
+  }
+  get_response {
+    field {
+      type: GROUP
+      name: "interfaces"
+      field {
+        type: UINT32
+        name: "interface_id"
+        range {
+          min: 1
+          max: 4294967295
+        }
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_DNS_LABEL"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: STRING
+      name: "label"
+      min_size: 1
+      max_size: 63
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: STRING
+      name: "label"
+      min_size: 1
+      max_size: 63
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_DNS_DOMAIN"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: STRING
+      name: "dns_domain"
+      max_size: 227
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: STRING
+      name: "dns_domain"
+      max_size: 227
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_DNS_SEARCH_DOMAIN"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: GROUP
+      name: "dns_search_domains"
+      field {
+        type: STRING
+        name: "dns_search_domain"
+        min_size: 56
+        max_size: 56
+      }
+      min: 0
+      max: 4
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: GROUP
+      name: "dns_search_domains"
+      field {
+        type: STRING
+        name: "dns_search_domain"
+        min_size: 56
+        max_size: 56
+      }
+      min: 0
+      max: 4
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_VLAN_CAPABILITIES"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT8
+      name: "capabilities"
+    }
+    field {
+      type: UINT16
+      name: "tagged_quantity"
+      label {
+        value: 0
+        label: "Not supported"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_VLAN_CONFIGURATION"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT16
+      name: "native_padded_vlan_id"
+      label {
+        value: 0
+        label: "No native untagged VLAN"
+      }
+    }
+    field {
+      type: GROUP
+      name: "tagged_vlans"
+      field {
+        type: UINT16
+        name: "tagged_padded_vlan_id"
+      }
+      field {
+        type: UINT8
+        name: "tagged_vlan_flags"
+      }
+      field {
+        type: UINT32
+        name: "tagged_vlan_interface_id"
+      }
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT16
+      name: "native_padded_vlan_id"
+      label {
+        value: 0
+        label: "No native untagged VLAN"
+      }
+      range {
+        min: 0
+        max: 4093
+      }
+    }
+    field {
+      type: GROUP
+      name: "tagged_vlans"
+      field {
+        type: UINT16
+        name: "tagged_padded_vlan_id"
+        range {
+          min: 0
+          max: 4093
+        }
+      }
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_VLAN_LABEL"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT16
+      name: "padded_vlan_id"
+      range {
+        min: 0
+        max: 4093
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT16
+      name: "padded_vlan_id"
+    }
+    field {
+      type: STRING
+      name: "label"
+      max_size: 32
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+  set_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+    field {
+      type: UINT16
+      name: "padded_vlan_id"
+      range {
+        min: 0
+        max: 4093
+      }
+    }
+    field {
+      type: STRING
+      name: "label"
+      max_size: 32
+    }
+  }
+  set_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT16
+      name: "padded_vlan_id"
+    }
+  }
+  set_sub_device_range: ROOT_OR_SUBDEVICE
+}
+version: 1724714393
