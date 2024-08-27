@@ -225,8 +225,8 @@ pid {
     field {
       type: GROUP
       name: "hardware_address"
-      min: 6
-      max: 8
+      min_size: 6
+      max_size: 8
       field {
         type: UINT8
         name: "byte"
@@ -362,56 +362,57 @@ pid {
   }
   get_sub_device_range: ROOT_OR_SUBDEVICE
 }
-pid {
-  name: "IFC_INTERFACE_LINE_SPEED"
-  value: 
-  get_request {
-    field {
-      type: UINT32
-      name: "interface_id"
-      range {
-        min: 1
-        max: 4294967295
-      }
-    }
-  }
-  get_response {
-    field {
-      type: UINT32
-      name: "interface_id"
-    }
-    field {
-      type: UINT64
-      name: "line_speed"
-    }
-  }
-  get_sub_device_range: ROOT_OR_SUBDEVICE
-}
-pid {
-  name: "IFC_INTERFACE_UTILIZATION"
-  value: 
-  get_request {
-    field {
-      type: UINT32
-      name: "interface_id"
-      range {
-        min: 1
-        max: 4294967295
-      }
-    }
-  }
-  get_response {
-    field {
-      type: UINT32
-      name: "interface_id"
-    }
-    field {
-      type: UINT64
-      name: "utilization"
-    }
-  }
-  get_sub_device_range: ROOT_OR_SUBDEVICE
-}
+# TODO(Peter): Need to implement the UINT64 type within the PID Proto
+#pid {
+#  name: "IFC_INTERFACE_LINE_SPEED"
+#  value: 
+#  get_request {
+#    field {
+#      type: UINT32
+#      name: "interface_id"
+#      range {
+#        min: 1
+#        max: 4294967295
+#      }
+#    }
+#  }
+#  get_response {
+#    field {
+#      type: UINT32
+#      name: "interface_id"
+#    }
+#    field {
+#      type: UINT64
+#      name: "line_speed"
+#    }
+#  }
+#  get_sub_device_range: ROOT_OR_SUBDEVICE
+#}
+#pid {
+#  name: "IFC_INTERFACE_UTILIZATION"
+#  value: 
+#  get_request {
+#    field {
+#      type: UINT32
+#      name: "interface_id"
+#      range {
+#        min: 1
+#        max: 4294967295
+#      }
+#    }
+#  }
+#  get_response {
+#    field {
+#      type: UINT32
+#      name: "interface_id"
+#    }
+#    field {
+#      type: UINT64
+#      name: "utilization"
+#    }
+#  }
+#  get_sub_device_range: ROOT_OR_SUBDEVICE
+#}
 pid {
   name: "IFC_INTERFACE_DUPLEX_MODE"
   value: 
@@ -726,6 +727,7 @@ pid {
           value: 3
           label: "BOOTP"
         }
+      }
     }
   }
   get_sub_device_range: ROOT_OR_SUBDEVICE
@@ -1144,6 +1146,7 @@ pid {
           value: 2
           label: "SLAAC"
         }
+      }
     }
   }
   get_sub_device_range: ROOT_OR_SUBDEVICE
@@ -1625,8 +1628,8 @@ pid {
         min_size: 56
         max_size: 56
       }
-      min: 0
-      max: 4
+      min_size: 0
+      max_size: 4
     }
   }
   get_sub_device_range: ROOT_OR_SUBDEVICE
@@ -1648,8 +1651,8 @@ pid {
         min_size: 56
         max_size: 56
       }
-      min: 0
-      max: 4
+      min_size: 0
+      max_size: 4
     }
   }
   set_response {
