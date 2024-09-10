@@ -163,6 +163,12 @@ const ResponderOps<DummyResponder>::ParamHandler
   { OLA_MANUFACTURER_PID_CODE_VERSION,
     &DummyResponder::GetOlaCodeVersion,
     NULL},
+  { PID_IFC_INTERFACE_ID_LIST,
+    &DummyResponder::GetIFCInterfaceIdList,
+    NULL},
+  { PID_IFC_INTERFACE_FIXED_LABEL,
+    &DummyResponder::GetIFCInterfaceFixedLabel,
+    NULL},
   { 0, NULL, NULL},
 };
 
@@ -438,6 +444,21 @@ RDMResponse *DummyResponder::GetDNSNameServer(
 RDMResponse *DummyResponder::GetOlaCodeVersion(
     const RDMRequest *request) {
   return ResponderHelper::GetString(request, VERSION);
+}
+
+/**
+ * E1.37-8 PIDs
+ */
+RDMResponse *DummyResponder::GetIFCInterfaceIdList(
+    const RDMRequest *request) {
+  return ResponderHelper::GetIFCInterfaceIdList(request,
+                                                m_network_manager.get());
+}
+
+RDMResponse *DummyResponder::GetIFCInterfaceFixedLabel(
+    const RDMRequest *request) {
+  return ResponderHelper::GetIFCInterfaceFixedLabel(request,
+                                                    m_network_manager.get());
 }
 }  // namespace rdm
 }  // namespace ola

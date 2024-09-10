@@ -1076,6 +1076,88 @@ RDMResponse *ResponderHelper::GetString(
       queued_message_count);
 }
 
+RDMResponse *ResponderHelper::GetIFCInterfaceIdList(
+    const RDMRequest *request,
+    const NetworkManagerInterface *network_manager,
+    uint8_t queued_message_count) {
+  if (request->ParamDataSize()) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  vector<Interface> interfaces =
+      network_manager->GetInterfacePicker()->GetInterfaces(false);
+
+  if (interfaces.size() == 0) {
+    return EmptyGetResponse(request, queued_message_count);
+  }
+
+  std::sort(interfaces.begin(), interfaces.end(),
+            ola::network::InterfaceIndexOrdering());
+
+  uint16_t interface_count = std::count_if(
+      interfaces.begin(), interfaces.end(), IsIFCInterfaceIndexValidInterface);
+
+  // Reorder so valid interfaces are first
+  std::stable_partition(interfaces.begin(), interfaces.end(),
+                        IsIFCInterfaceIndexValidInterface);
+
+  uint32_t ifc_interface_list_raw[interface_count];
+
+  // Then just iterate through the valid ones
+  vector<Interface>::iterator iter = interfaces.begin();
+  for (uint16_t i = 0; i < interface_count; i++) {
+    ifc_interface_list_raw[i] =
+      HostToNetwork(static_cast<uint32_t>(iter[i].index));
+  }
+
+  return GetResponseFromData(
+      request,
+      reinterpret_cast<uint8_t*>(&ifc_interface_list_raw),
+      sizeof(ifc_interface_list_raw),
+      RDM_ACK,
+      queued_message_count);
+}
+
+
+RDMResponse *ResponderHelper::GetIFCInterfaceFixedLabel(
+    const RDMRequest *request,
+    const NetworkManagerInterface *network_manager,
+    uint8_t queued_message_count) {
+  uint32_t index;
+  if (!ResponderHelper::ExtractUInt32(request, &index)) {
+    return NackWithReason(request, NR_FORMAT_ERROR);
+  }
+
+  Interface interface;
+  if (!FindInterface(network_manager, &interface, index)) {
+    return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
+  }
+
+  PACK(
+  struct ifc_interface_fixed_label_s {
+    uint32_t index;
+    char fixed_label[MAX_RDM_STRING_LENGTH];
+  });
+  STATIC_ASSERT(sizeof(ifc_interface_fixed_label_s) == 36);
+
+  struct ifc_interface_fixed_label_s ifc_interface_fixed_label;
+  ifc_interface_fixed_label.index = HostToNetwork(interface.index);
+
+  size_t str_len = min(interface.name.size(), sizeof(ifc_interface_fixed_label.fixed_label));
+  strncpy(ifc_interface_fixed_label.fixed_label, interface.name.c_str(), str_len);
+
+  unsigned int param_data_size = (
+      sizeof(ifc_interface_fixed_label) -
+      sizeof(ifc_interface_fixed_label.fixed_label) + str_len);
+
+  return GetResponseFromData(request,
+                             reinterpret_cast<uint8_t*>(&ifc_interface_fixed_label),
+                             param_data_size,
+                             RDM_ACK,
+                             queued_message_count);
+}
+
+
 RDMResponse *ResponderHelper::EmptyGetResponse(
     const RDMRequest *request,
     uint8_t queued_message_count) {
@@ -1228,6 +1310,15 @@ bool ResponderHelper::IsInterfaceIndexValid(uint32_t index) {
 
 bool ResponderHelper::IsInterfaceIndexValidInterface(Interface interface) {
   return IsInterfaceIndexValid(interface.index);
+}
+
+bool ResponderHelper::IsIFCInterfaceIndexValid(uint32_t index) {
+  return (index >= MIN_RDM_IFC_INTERFACE_INDEX &&
+          index <= MAX_RDM_IFC_INTERFACE_INDEX);
+}
+
+bool ResponderHelper::IsIFCInterfaceIndexValidInterface(Interface interface) {
+  return IsIFCInterfaceIndexValid(interface.index);
 }
 }  // namespace rdm
 }  // namespace ola

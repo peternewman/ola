@@ -212,6 +212,17 @@ class ResponderHelper {
         const ola::network::IPV4Address &value,
         uint8_t queued_message_count = 0);
 
+    // E1.37-8 Helpers
+    static RDMResponse *GetIFCInterfaceIdList(
+        const RDMRequest *request,
+        const NetworkManagerInterface *network_manager,
+        uint8_t queued_message_count = 0);
+
+    static RDMResponse *GetIFCInterfaceFixedLabel(
+        const RDMRequest *request,
+        const NetworkManagerInterface *network_manager,
+        uint8_t queued_message_count = 0);
+
     // Generic Helpers.
     static RDMResponse *GetString(
         const RDMRequest *request,
@@ -273,6 +284,8 @@ class ResponderHelper {
       uint32_t index);
   static bool IsInterfaceIndexValid(uint32_t index);
   static bool IsInterfaceIndexValidInterface(ola::network::Interface interface);
+  static bool IsIFCInterfaceIndexValid(uint32_t index);
+  static bool IsIFCInterfaceIndexValidInterface(ola::network::Interface interface);
 };
 }  // namespace rdm
 }  // namespace ola
