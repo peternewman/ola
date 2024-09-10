@@ -222,6 +222,10 @@ class ResponderHelper {
         const RDMRequest *request,
         const NetworkManagerInterface *network_manager,
         uint8_t queued_message_count = 0);
+    static RDMResponse *GetIFCInterfaceType(
+        const RDMRequest *request,
+        const NetworkManagerInterface *network_manager,
+        uint8_t queued_message_count = 0);
 
     // Generic Helpers.
     static RDMResponse *GetString(

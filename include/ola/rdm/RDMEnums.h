@@ -759,6 +759,21 @@ static const uint8_t MAX_RDM_DOMAIN_NAME_LENGTH = 231;
 
 static const uint8_t DNS_NAME_SERVER_MAX_INDEX = 2;
 
+// Consts for E1.37-8
+static const uint32_t MIN_RDM_IFC_INTERFACE_INDEX = 0x00000001;
+static const uint32_t MAX_RDM_IFC_INTERFACE_INDEX = 0xFFFFFFFF;
+
+typedef enum {
+  IFC_INTERFACE_TYPE_UNKNOWN = 0x00,
+  IFC_INTERFACE_TYPE_VIRTUAL = 0x01,
+  IFC_INTERFACE_TYPE_WIRED = 0x02,
+  IFC_INTERFACE_TYPE_OPTICAL_FIBER = 0x03,
+  IFC_INTERFACE_TYPE_WIRELESS_RF = 0x04,
+  IFC_INTERFACE_TYPE_WIRELESS_OPTICAL = 0x05,
+  IFC_INTERFACE_TYPE_COMBINATION = 0x06,
+  IFC_INTERFACE_TYPE_MAX,
+} rdm_ifc_interface_type;
+
 // Excluding the mandatory NULL terminator
 static const uint8_t MAX_RDM_SCOPE_STRING_LENGTH = 62;
 }  // namespace rdm

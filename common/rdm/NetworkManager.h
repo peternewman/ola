@@ -56,6 +56,8 @@ class NetworkManager : public NetworkManagerInterface {
   const std::string GetDomainName() const;
   bool GetNameServers(
       std::vector<ola::network::IPV4Address> *name_servers) const;
+  rdm_ifc_interface_type GetIFCInterfaceType(
+      const ola::network::Interface &iface) const;
 
  private:
   std::auto_ptr<ola::network::InterfacePicker> m_interface_picker;

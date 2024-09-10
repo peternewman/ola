@@ -74,6 +74,9 @@ class FakeNetworkManager : public NetworkManagerInterface {
   bool GetNameServers(
       std::vector<ola::network::IPV4Address> *name_servers) const;
 
+  rdm_ifc_interface_type GetIFCInterfaceType(
+      const ola::network::Interface &iface) const;
+
  private:
   ola::network::FakeInterfacePicker m_interface_picker;
   int32_t m_ipv4_default_route_if_index;

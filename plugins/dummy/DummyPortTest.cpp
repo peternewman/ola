@@ -268,6 +268,7 @@ void DummyPortTest::testSupportedParams() {
     ola::rdm::PID_DNS_DOMAIN_NAME,
     ola::rdm::PID_IFC_INTERFACE_ID_LIST,
     ola::rdm::PID_IFC_INTERFACE_FIXED_LABEL,
+    ola::rdm::PID_IFC_INTERFACE_TYPE,
     ola::rdm::OLA_MANUFACTURER_PID_CODE_VERSION,
   };
 

@@ -80,5 +80,11 @@ bool FakeNetworkManager::GetNameServers(
   *name_servers = m_name_servers;
   return true;
 }
+
+rdm_ifc_interface_type FakeNetworkManager::GetIFCInterfaceType(
+    const Interface &iface) const {
+  // Mix things up a bit. The type depends on the index.
+  return static_cast<rdm_ifc_interface_type>(iface.index % IFC_INTERFACE_TYPE_MAX);
+}
 }  // namespace rdm
 }  // namespace ola

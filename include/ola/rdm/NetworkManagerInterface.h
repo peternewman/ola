@@ -92,6 +92,15 @@ class NetworkManagerInterface {
    */
   virtual bool GetNameServers(
       std::vector<ola::network::IPV4Address> *name_servers) const = 0;
+
+  /**
+   * Get the IFC interface type of an interface
+   * @param iface the interface to check the IFC type of
+   * @return The IFC interface type or IFC_INTERFACE_TYPE_UNKNOWN if it can't
+   * be ascertained.
+   */
+  virtual rdm_ifc_interface_type GetIFCInterfaceType(
+      const ola::network::Interface &iface) const = 0;
 };
 }  // namespace rdm
 }  // namespace ola

@@ -633,6 +633,9 @@ RDMResponse *ResponderHelper::GetRealTimeClock(
       queued_message_count);
 }
 
+// TODO(Peter): If there's an alias/additional IP on an interface, this returns its ID twice
+// I suspect this is/should be against the specs, so we need to fix it here
+// our RDM test also doesn't catch it
 RDMResponse *ResponderHelper::GetListInterfaces(
     const RDMRequest *request,
     const NetworkManagerInterface *network_manager,
@@ -1155,6 +1158,42 @@ RDMResponse *ResponderHelper::GetIFCInterfaceFixedLabel(
                              param_data_size,
                              RDM_ACK,
                              queued_message_count);
+}
+
+
+RDMResponse *ResponderHelper::GetIFCInterfaceType(
+    const RDMRequest *request,
+    const NetworkManagerInterface *network_manager,
+    uint8_t queued_message_count) {
+  uint32_t index;
+  if (!ResponderHelper::ExtractUInt32(request, &index)) {
+    return NackWithReason(request, NR_FORMAT_ERROR);
+  }
+
+  Interface interface;
+  if (!FindInterface(network_manager, &interface, index)) {
+    return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
+  }
+
+  PACK(
+  struct ifc_interface_type_s {
+    uint32_t index;
+    uint8_t interface_type;
+  });
+  STATIC_ASSERT(sizeof(ifc_interface_type_s) == 5);
+
+  struct ifc_interface_type_s ifc_interface_type;
+  ifc_interface_type.index = HostToNetwork(interface.index);
+
+  ifc_interface_type.interface_type = static_cast<uint8_t>(
+      network_manager->GetIFCInterfaceType(interface));
+
+  return GetResponseFromData(
+      request,
+      reinterpret_cast<uint8_t*>(&ifc_interface_type),
+      sizeof(ifc_interface_type),
+      RDM_ACK,
+      queued_message_count);
 }
 
 

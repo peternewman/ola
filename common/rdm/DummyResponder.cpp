@@ -169,6 +169,9 @@ const ResponderOps<DummyResponder>::ParamHandler
   { PID_IFC_INTERFACE_FIXED_LABEL,
     &DummyResponder::GetIFCInterfaceFixedLabel,
     NULL},
+  { PID_IFC_INTERFACE_TYPE,
+    &DummyResponder::GetIFCInterfaceType,
+    NULL},
   { 0, NULL, NULL},
 };
 
@@ -459,6 +462,12 @@ RDMResponse *DummyResponder::GetIFCInterfaceFixedLabel(
     const RDMRequest *request) {
   return ResponderHelper::GetIFCInterfaceFixedLabel(request,
                                                     m_network_manager.get());
+}
+
+RDMResponse *DummyResponder::GetIFCInterfaceType(
+    const RDMRequest *request) {
+  return ResponderHelper::GetIFCInterfaceType(request,
+                                              m_network_manager.get());
 }
 }  // namespace rdm
 }  // namespace ola
