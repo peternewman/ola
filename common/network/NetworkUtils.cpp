@@ -512,7 +512,7 @@ typedef ola::Callback1<void, const struct nlmsghdr*> NetlinkCallback;
 
 /**
  * Read a message from the netlink socket. This continues to read until the
- * expected sequence number is seend. Returns true if the desired message was
+ * expected sequence number is seen. Returns true if the desired message was
  * seen, false if there was an error reading from the netlink socket.
  */
 bool ReadNetlinkSocket(int sd, uint8_t *buffer, int bufsize, unsigned int seq,
