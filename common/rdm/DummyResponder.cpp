@@ -172,6 +172,12 @@ const ResponderOps<DummyResponder>::ParamHandler
   { PID_IFC_INTERFACE_TYPE,
     &DummyResponder::GetIFCInterfaceType,
     NULL},
+  { PID_IFC_DNS_LABEL,
+    &DummyResponder::GetIFCDNSLabel,
+    NULL},
+  { PID_IFC_DNS_DOMAIN,
+    &DummyResponder::GetIFCDNSDomain,
+    NULL},
   { 0, NULL, NULL},
 };
 
@@ -468,6 +474,18 @@ RDMResponse *DummyResponder::GetIFCInterfaceType(
     const RDMRequest *request) {
   return ResponderHelper::GetIFCInterfaceType(request,
                                               m_network_manager.get());
+}
+
+RDMResponse *DummyResponder::GetIFCDNSLabel(
+    const RDMRequest *request) {
+  return ResponderHelper::GetIFCDNSLabel(request,
+                                         m_network_manager.get());
+}
+
+RDMResponse *DummyResponder::GetIFCDNSDomain(
+    const RDMRequest *request) {
+  return ResponderHelper::GetIFCDNSDomain(request,
+                                          m_network_manager.get());
 }
 }  // namespace rdm
 }  // namespace ola

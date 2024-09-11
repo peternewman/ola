@@ -1197,6 +1197,102 @@ RDMResponse *ResponderHelper::GetIFCInterfaceType(
 }
 
 
+RDMResponse *ResponderHelper::GetIFCDNSLabel(
+    const RDMRequest *request,
+    const NetworkManagerInterface *network_manager,
+    uint8_t queued_message_count) {
+  uint32_t index;
+  if (!ResponderHelper::ExtractUInt32(request, &index)) {
+    return NackWithReason(request, NR_FORMAT_ERROR);
+  }
+
+  // TODO(Peter): For now we always return the one hostname as long as any
+  // valid interface is supplied
+  Interface interface;
+  if (!FindInterface(network_manager, &interface, index)) {
+    // TODO(Peter): Should this be NR_INTERFACE_UNAVAILABLE?
+    return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
+  }
+
+  const string hostname = network_manager->GetHostname();
+  if (hostname.empty() || hostname.length() > MAX_RDM_HOSTNAME_LENGTH) {
+    // Hostname outside of the allowed parameters for RDM, return an error
+    return NackWithReason(request, NR_HARDWARE_FAULT);
+  } else {
+    PACK(
+    struct ifc_dns_label_s {
+      uint32_t index;
+      char label[MAX_RDM_HOSTNAME_LENGTH];
+    });
+    STATIC_ASSERT(sizeof(ifc_dns_label_s) == 67);
+
+    struct ifc_dns_label_s ifc_dns_label;
+    ifc_dns_label.index = HostToNetwork(interface.index);
+
+    size_t str_len = min(hostname.size(), sizeof(ifc_dns_label.label));
+    strncpy(ifc_dns_label.label, hostname.c_str(), str_len);
+
+    unsigned int param_data_size = (
+        sizeof(ifc_dns_label) -
+        sizeof(ifc_dns_label.label) + str_len);
+
+    return GetResponseFromData(request,
+                               reinterpret_cast<uint8_t*>(&ifc_dns_label),
+                               param_data_size,
+                               RDM_ACK,
+                               queued_message_count);
+  }
+}
+
+
+RDMResponse *ResponderHelper::GetIFCDNSDomain(
+    const RDMRequest *request,
+    const NetworkManagerInterface *network_manager,
+    uint8_t queued_message_count) {
+  uint32_t index;
+  if (!ResponderHelper::ExtractUInt32(request, &index)) {
+    return NackWithReason(request, NR_FORMAT_ERROR);
+  }
+
+  // TODO(Peter): For now we always return the one domain name as long as any
+  // valid interface is supplied
+  Interface interface;
+  if (!FindInterface(network_manager, &interface, index)) {
+    // TODO(Peter): Should this be NR_INTERFACE_UNAVAILABLE?
+    return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
+  }
+
+  const string domain_name = network_manager->GetDomainName();
+  if (domain_name.empty() || domain_name.length() > MAX_RDM_IFC_DOMAIN_NAME_LENGTH) {
+    // Domain name outside of the allowed parameters for RDM, return an error
+    return NackWithReason(request, NR_HARDWARE_FAULT);
+  } else {
+    PACK(
+    struct ifc_dns_domain_s {
+      uint32_t index;
+      char dns_domain[MAX_RDM_IFC_DOMAIN_NAME_LENGTH];
+    });
+    STATIC_ASSERT(sizeof(ifc_dns_domain_s) == 231);
+
+    struct ifc_dns_domain_s ifc_dns_domain;
+    ifc_dns_domain.index = HostToNetwork(interface.index);
+
+    size_t str_len = min(domain_name.size(), sizeof(ifc_dns_domain.dns_domain));
+    strncpy(ifc_dns_domain.dns_domain, domain_name.c_str(), str_len);
+
+    unsigned int param_data_size = (
+        sizeof(ifc_dns_domain) -
+        sizeof(ifc_dns_domain.dns_domain) + str_len);
+
+    return GetResponseFromData(request,
+                               reinterpret_cast<uint8_t*>(&ifc_dns_domain),
+                               param_data_size,
+                               RDM_ACK,
+                               queued_message_count);
+  }
+}
+
+
 RDMResponse *ResponderHelper::EmptyGetResponse(
     const RDMRequest *request,
     uint8_t queued_message_count) {
