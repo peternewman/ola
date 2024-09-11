@@ -304,6 +304,10 @@ class ResponderHelper {
       uint32_t index);
   static bool IsInterfaceIndexValid(uint32_t index);
   static bool IsInterfaceIndexValidInterface(ola::network::Interface interface);
+  static bool FindIFCInterface(
+      const NetworkManagerInterface *network_manager,
+      ola::network::Interface *interface,
+      uint32_t index);
   static bool IsIFCInterfaceIndexValid(uint32_t index);
   static bool IsIFCInterfaceIndexValidInterface(ola::network::Interface interface);
 };

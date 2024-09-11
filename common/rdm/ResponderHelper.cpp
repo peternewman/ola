@@ -1132,7 +1132,7 @@ RDMResponse *ResponderHelper::GetIFCInterfaceFixedLabel(
   }
 
   Interface interface;
-  if (!FindInterface(network_manager, &interface, index)) {
+  if (!FindIFCInterface(network_manager, &interface, index)) {
     return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
   }
 
@@ -1174,7 +1174,7 @@ RDMResponse *ResponderHelper::GetIFCInterfaceType(
   }
 
   Interface interface;
-  if (!FindInterface(network_manager, &interface, index)) {
+  if (!FindIFCInterface(network_manager, &interface, index)) {
     return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
   }
 
@@ -1212,7 +1212,7 @@ RDMResponse *ResponderHelper::GetIFCIPV4DNS(
   // TODO(Peter): For now we always return a common set of DNS servers as long
   // as any valid interface is supplied
   Interface interface;
-  if (!FindInterface(network_manager, &interface, index)) {
+  if (!FindIFCInterface(network_manager, &interface, index)) {
     // TODO(Peter): Should this be NR_INTERFACE_UNAVAILABLE?
     return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
   }
@@ -1270,7 +1270,7 @@ RDMResponse *ResponderHelper::GetIFCDNSLabel(
   // TODO(Peter): For now we always return the one hostname as long as any
   // valid interface is supplied
   Interface interface;
-  if (!FindInterface(network_manager, &interface, index)) {
+  if (!FindIFCInterface(network_manager, &interface, index)) {
     // TODO(Peter): Should this be NR_INTERFACE_UNAVAILABLE?
     return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
   }
@@ -1318,7 +1318,7 @@ RDMResponse *ResponderHelper::GetIFCDNSDomain(
   // TODO(Peter): For now we always return the one domain name as long as any
   // valid interface is supplied
   Interface interface;
-  if (!FindInterface(network_manager, &interface, index)) {
+  if (!FindIFCInterface(network_manager, &interface, index)) {
     // TODO(Peter): Should this be NR_INTERFACE_UNAVAILABLE?
     return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
   }
@@ -1508,6 +1508,20 @@ bool ResponderHelper::IsInterfaceIndexValid(uint32_t index) {
 
 bool ResponderHelper::IsInterfaceIndexValidInterface(Interface interface) {
   return IsInterfaceIndexValid(interface.index);
+}
+
+bool ResponderHelper::FindIFCInterface(
+    const NetworkManagerInterface *network_manager,
+    Interface *interface, uint32_t index) {
+  if (!IsIFCInterfaceIndexValid(index)) {
+    // Invalid index
+    return false;
+  }
+
+  InterfacePicker::Options options;
+  options.specific_only = true;
+  return network_manager->GetInterfacePicker()->ChooseInterface(
+      interface, index, options);
 }
 
 bool ResponderHelper::IsIFCInterfaceIndexValid(uint32_t index) {
