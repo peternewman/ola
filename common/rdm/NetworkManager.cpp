@@ -60,7 +60,8 @@ bool NetworkManager::GetNameServers(vector<IPV4Address> *name_servers) const {
   return ola::network::NameServers(name_servers);
 }
 
-rdm_ifc_interface_type NetworkManager::GetIFCInterfaceType(const Interface&) const {
+rdm_ifc_interface_type NetworkManager::GetIFCInterfaceType(
+    const Interface&) const {
   // TODO(Peter): Need to work out whether we can easily determine interface
   // type (potentially cross-platform), so for now we always return
   // IFC_INTERFACE_TYPE_UNKNOWN.

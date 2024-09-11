@@ -228,6 +228,11 @@ class ResponderHelper {
         const NetworkManagerInterface *network_manager,
         uint8_t queued_message_count = 0);
 
+    static RDMResponse *GetIFCIPV4DNS(
+        const RDMRequest *request,
+        const NetworkManagerInterface *network_manager,
+        uint8_t queued_message_count = 0);
+
     static RDMResponse *GetIFCDNSLabel(
         const RDMRequest *request,
         const NetworkManagerInterface *network_manager,

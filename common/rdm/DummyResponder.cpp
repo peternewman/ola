@@ -172,6 +172,9 @@ const ResponderOps<DummyResponder>::ParamHandler
   { PID_IFC_INTERFACE_TYPE,
     &DummyResponder::GetIFCInterfaceType,
     NULL},
+  { PID_IFC_IPV4_DNS,
+    &DummyResponder::GetIFCIPV4DNS,
+    NULL},
   { PID_IFC_DNS_LABEL,
     &DummyResponder::GetIFCDNSLabel,
     NULL},
@@ -215,8 +218,7 @@ void DummyResponder::SendRDMRequest(RDMRequest *request,
                                        request, callback);
 }
 
-RDMResponse *DummyResponder::GetParamDescription(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetParamDescription(const RDMRequest *request) {
   // Check that it's OLA_MANUFACTURER_PID_CODE_VERSION being requested
   uint16_t parameter_id;
   if (!ResponderHelper::ExtractUInt16(request, &parameter_id)) {
@@ -249,8 +251,7 @@ RDMResponse *DummyResponder::GetDeviceInfo(const RDMRequest *request) {
 /**
  * Reset to factory defaults
  */
-RDMResponse *DummyResponder::GetFactoryDefaults(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetFactoryDefaults(const RDMRequest *request) {
   if (request->ParamDataSize()) {
     return NackWithReason(request, NR_FORMAT_ERROR);
   }
@@ -262,8 +263,7 @@ RDMResponse *DummyResponder::GetFactoryDefaults(
   return GetResponseFromData(request, &using_defaults, sizeof(using_defaults));
 }
 
-RDMResponse *DummyResponder::SetFactoryDefaults(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::SetFactoryDefaults(const RDMRequest *request) {
   if (request->ParamDataSize()) {
     return NackWithReason(request, NR_FORMAT_ERROR);
   }
@@ -275,21 +275,18 @@ RDMResponse *DummyResponder::SetFactoryDefaults(
   return ResponderHelper::EmptySetResponse(request);
 }
 
-RDMResponse *DummyResponder::GetProductDetailList(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetProductDetailList(const RDMRequest *request) {
   vector<rdm_product_detail> product_details;
   product_details.push_back(PRODUCT_DETAIL_TEST);
   product_details.push_back(PRODUCT_DETAIL_OTHER);
   return ResponderHelper::GetProductDetailList(request, product_details);
 }
 
-RDMResponse *DummyResponder::GetPersonality(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetPersonality(const RDMRequest *request) {
   return ResponderHelper::GetPersonality(request, &m_personality_manager);
 }
 
-RDMResponse *DummyResponder::SetPersonality(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::SetPersonality(const RDMRequest *request) {
   return ResponderHelper::SetPersonality(request, &m_personality_manager,
                                          m_start_address);
 }
@@ -304,24 +301,20 @@ RDMResponse *DummyResponder::GetSlotInfo(const RDMRequest *request) {
   return ResponderHelper::GetSlotInfo(request, &m_personality_manager);
 }
 
-RDMResponse *DummyResponder::GetSlotDescription(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetSlotDescription(const RDMRequest *request) {
   return ResponderHelper::GetSlotDescription(request, &m_personality_manager);
 }
 
-RDMResponse *DummyResponder::GetSlotDefaultValues(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetSlotDefaultValues(const RDMRequest *request) {
   return ResponderHelper::GetSlotDefaultValues(request, &m_personality_manager);
 }
 
-RDMResponse *DummyResponder::GetDmxStartAddress(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetDmxStartAddress(const RDMRequest *request) {
   return ResponderHelper::GetDmxAddress(request, &m_personality_manager,
                                         m_start_address);
 }
 
-RDMResponse *DummyResponder::SetDmxStartAddress(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::SetDmxStartAddress(const RDMRequest *request) {
   return ResponderHelper::SetDmxAddress(request, &m_personality_manager,
                                         &m_start_address);
 }
@@ -353,8 +346,7 @@ RDMResponse *DummyResponder::GetRealTimeClock(const RDMRequest *request) {
   return ResponderHelper::GetRealTimeClock(request);
 }
 
-RDMResponse *DummyResponder::GetManufacturerLabel(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetManufacturerLabel(const RDMRequest *request) {
   return ResponderHelper::GetString(request, OLA_MANUFACTURER_LABEL);
 }
 
@@ -375,8 +367,7 @@ RDMResponse *DummyResponder::GetSoftwareVersionLabel(
 /**
  * PID_SENSOR_DEFINITION
  */
-RDMResponse *DummyResponder::GetSensorDefinition(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetSensorDefinition(const RDMRequest *request) {
   return ResponderHelper::GetSensorDefinition(request, m_sensors);
 }
 
@@ -401,65 +392,50 @@ RDMResponse *DummyResponder::RecordSensor(const RDMRequest *request) {
 /**
  * E1.37-2 PIDs
  */
-RDMResponse *DummyResponder::GetListInterfaces(
-    const RDMRequest *request) {
-  return ResponderHelper::GetListInterfaces(request,
-                                            m_network_manager.get());
+RDMResponse *DummyResponder::GetListInterfaces(const RDMRequest *request) {
+  return ResponderHelper::GetListInterfaces(request, m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetInterfaceLabel(
-    const RDMRequest *request) {
-  return ResponderHelper::GetInterfaceLabel(request,
-                                            m_network_manager.get());
+RDMResponse *DummyResponder::GetInterfaceLabel(const RDMRequest *request) {
+  return ResponderHelper::GetInterfaceLabel(request, m_network_manager.get());
 }
 
 RDMResponse *DummyResponder::GetInterfaceHardwareAddressType1(
     const RDMRequest *request) {
   return ResponderHelper::GetInterfaceHardwareAddressType1(
-      request,
-      m_network_manager.get());
+      request, m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetIPV4CurrentAddress(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetIPV4CurrentAddress(const RDMRequest *request) {
   return ResponderHelper::GetIPV4CurrentAddress(request,
                                                 m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetIPV4DefaultRoute(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetIPV4DefaultRoute(const RDMRequest *request) {
   return ResponderHelper::GetIPV4DefaultRoute(request,
                                               m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetDNSHostname(
-    const RDMRequest *request) {
-  return ResponderHelper::GetDNSHostname(request,
-                                         m_network_manager.get());
+RDMResponse *DummyResponder::GetDNSHostname(const RDMRequest *request) {
+  return ResponderHelper::GetDNSHostname(request, m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetDNSDomainName(
-    const RDMRequest *request) {
-  return ResponderHelper::GetDNSDomainName(request,
-                                           m_network_manager.get());
+RDMResponse *DummyResponder::GetDNSDomainName(const RDMRequest *request) {
+  return ResponderHelper::GetDNSDomainName(request, m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetDNSNameServer(
-    const RDMRequest *request) {
-  return ResponderHelper::GetDNSNameServer(request,
-                                           m_network_manager.get());
+RDMResponse *DummyResponder::GetDNSNameServer(const RDMRequest *request) {
+  return ResponderHelper::GetDNSNameServer(request, m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetOlaCodeVersion(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetOlaCodeVersion(const RDMRequest *request) {
   return ResponderHelper::GetString(request, VERSION);
 }
 
 /**
  * E1.37-8 PIDs
  */
-RDMResponse *DummyResponder::GetIFCInterfaceIdList(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetIFCInterfaceIdList(const RDMRequest *request) {
   return ResponderHelper::GetIFCInterfaceIdList(request,
                                                 m_network_manager.get());
 }
@@ -470,22 +446,21 @@ RDMResponse *DummyResponder::GetIFCInterfaceFixedLabel(
                                                     m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetIFCInterfaceType(
-    const RDMRequest *request) {
+RDMResponse *DummyResponder::GetIFCInterfaceType(const RDMRequest *request) {
   return ResponderHelper::GetIFCInterfaceType(request,
                                               m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetIFCDNSLabel(
-    const RDMRequest *request) {
-  return ResponderHelper::GetIFCDNSLabel(request,
-                                         m_network_manager.get());
+RDMResponse *DummyResponder::GetIFCIPV4DNS(const RDMRequest *request) {
+  return ResponderHelper::GetIFCIPV4DNS(request, m_network_manager.get());
 }
 
-RDMResponse *DummyResponder::GetIFCDNSDomain(
-    const RDMRequest *request) {
-  return ResponderHelper::GetIFCDNSDomain(request,
-                                          m_network_manager.get());
+RDMResponse *DummyResponder::GetIFCDNSLabel(const RDMRequest *request) {
+  return ResponderHelper::GetIFCDNSLabel(request, m_network_manager.get());
+}
+
+RDMResponse *DummyResponder::GetIFCDNSDomain(const RDMRequest *request) {
+  return ResponderHelper::GetIFCDNSDomain(request, m_network_manager.get());
 }
 }  // namespace rdm
 }  // namespace ola

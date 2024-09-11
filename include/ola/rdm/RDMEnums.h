@@ -763,7 +763,7 @@ static const uint8_t DNS_NAME_SERVER_MAX_INDEX = 2;
 static const uint32_t MIN_RDM_IFC_INTERFACE_INDEX = 0x00000001;
 static const uint32_t MAX_RDM_IFC_INTERFACE_INDEX = 0xFFFFFFFF;
 
-static const uint8_t MAX_RDM_IFC_IPV4_DNS_NAME_SERVER_COUNT = 38;
+static const uint8_t MAX_RDM_IFC_IPV4_DNS_NAME_SERVER_COUNT = 56;
 
 static const uint8_t MAX_RDM_IFC_DOMAIN_NAME_LENGTH = 227;
 

@@ -633,9 +633,9 @@ RDMResponse *ResponderHelper::GetRealTimeClock(
       queued_message_count);
 }
 
-// TODO(Peter): If there's an alias/additional IP on an interface, this returns its ID twice
-// I suspect this is/should be against the specs, so we need to fix it here
-// our RDM test also doesn't catch it
+// TODO(Peter): If there's an alias/additional IP on an interface, this returns
+// its ID twice. I suspect this is/should be against the specs, so we need to
+// fix it here our RDM test also doesn't catch it!
 RDMResponse *ResponderHelper::GetListInterfaces(
     const RDMRequest *request,
     const NetworkManagerInterface *network_manager,
@@ -1146,18 +1146,21 @@ RDMResponse *ResponderHelper::GetIFCInterfaceFixedLabel(
   struct ifc_interface_fixed_label_s ifc_interface_fixed_label;
   ifc_interface_fixed_label.index = HostToNetwork(interface.index);
 
-  size_t str_len = min(interface.name.size(), sizeof(ifc_interface_fixed_label.fixed_label));
-  strncpy(ifc_interface_fixed_label.fixed_label, interface.name.c_str(), str_len);
+  size_t str_len = min(interface.name.size(),
+                       sizeof(ifc_interface_fixed_label.fixed_label));
+  strncpy(ifc_interface_fixed_label.fixed_label,
+          interface.name.c_str(), str_len);
 
   unsigned int param_data_size = (
       sizeof(ifc_interface_fixed_label) -
       sizeof(ifc_interface_fixed_label.fixed_label) + str_len);
 
-  return GetResponseFromData(request,
-                             reinterpret_cast<uint8_t*>(&ifc_interface_fixed_label),
-                             param_data_size,
-                             RDM_ACK,
-                             queued_message_count);
+  return GetResponseFromData(
+      request,
+      reinterpret_cast<uint8_t*>(&ifc_interface_fixed_label),
+      param_data_size,
+      RDM_ACK,
+      queued_message_count);
 }
 
 
@@ -1194,6 +1197,64 @@ RDMResponse *ResponderHelper::GetIFCInterfaceType(
       sizeof(ifc_interface_type),
       RDM_ACK,
       queued_message_count);
+}
+
+
+RDMResponse *ResponderHelper::GetIFCIPV4DNS(
+    const RDMRequest *request,
+    const NetworkManagerInterface *network_manager,
+    uint8_t queued_message_count) {
+  uint32_t index;
+  if (!ResponderHelper::ExtractUInt32(request, &index)) {
+    return NackWithReason(request, NR_FORMAT_ERROR);
+  }
+
+  // TODO(Peter): For now we always return a common set of DNS servers as long
+  // as any valid interface is supplied
+  Interface interface;
+  if (!FindInterface(network_manager, &interface, index)) {
+    // TODO(Peter): Should this be NR_INTERFACE_UNAVAILABLE?
+    return NackWithReason(request, NR_DATA_OUT_OF_RANGE);
+  }
+
+  vector<IPV4Address> name_servers;
+  if (!network_manager->GetNameServers(&name_servers)) {
+    return NackWithReason(request, NR_HARDWARE_FAULT);
+  }
+
+  if (name_servers.size() > MAX_RDM_IFC_IPV4_DNS_NAME_SERVER_COUNT) {
+    return NackWithReason(request, NR_HARDWARE_FAULT);
+  }
+
+  PACK(
+  struct ifc_ipv4_dns_s {
+    uint32_t index;
+    uint32_t ipv4_dns_addresses[MAX_RDM_IFC_IPV4_DNS_NAME_SERVER_COUNT];
+  });
+  STATIC_ASSERT(sizeof(ifc_ipv4_dns_s) == 228);
+
+  struct ifc_ipv4_dns_s ifc_ipv4_dns;
+  ifc_ipv4_dns.index = HostToNetwork(interface.index);
+
+  // TODO(Peter): Correctly size the IPv4 address as a const
+  size_t ipv4_dns_addresses_len = min(
+      name_servers.size() * IPV4Address::LENGTH,
+      sizeof(ifc_ipv4_dns.ipv4_dns_addresses));
+
+  for (unsigned int i = 0; i < name_servers.size(); i++) {
+    // s_addr is already in network byte order, so doesn't need converting
+    ifc_ipv4_dns.ipv4_dns_addresses[i] = name_servers.at(i).AsInt();
+  }
+
+  unsigned int param_data_size = (
+      sizeof(ifc_ipv4_dns) -
+      sizeof(ifc_ipv4_dns.ipv4_dns_addresses) + ipv4_dns_addresses_len);
+
+  return GetResponseFromData(request,
+                             reinterpret_cast<uint8_t*>(&ifc_ipv4_dns),
+                             param_data_size,
+                             RDM_ACK,
+                             queued_message_count);
 }
 
 
@@ -1263,7 +1324,8 @@ RDMResponse *ResponderHelper::GetIFCDNSDomain(
   }
 
   const string domain_name = network_manager->GetDomainName();
-  if (domain_name.empty() || domain_name.length() > MAX_RDM_IFC_DOMAIN_NAME_LENGTH) {
+  if (domain_name.empty() ||
+      domain_name.length() > MAX_RDM_IFC_DOMAIN_NAME_LENGTH) {
     // Domain name outside of the allowed parameters for RDM, return an error
     return NackWithReason(request, NR_HARDWARE_FAULT);
   } else {
@@ -1277,7 +1339,8 @@ RDMResponse *ResponderHelper::GetIFCDNSDomain(
     struct ifc_dns_domain_s ifc_dns_domain;
     ifc_dns_domain.index = HostToNetwork(interface.index);
 
-    size_t str_len = min(domain_name.size(), sizeof(ifc_dns_domain.dns_domain));
+    size_t str_len = min(domain_name.size(),
+                         sizeof(ifc_dns_domain.dns_domain));
     strncpy(ifc_dns_domain.dns_domain, domain_name.c_str(), str_len);
 
     unsigned int param_data_size = (

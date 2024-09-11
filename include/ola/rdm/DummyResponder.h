@@ -133,6 +133,7 @@ class DummyResponder: public RDMControllerInterface {
   RDMResponse *GetIFCInterfaceIdList(const RDMRequest *request);
   RDMResponse *GetIFCInterfaceFixedLabel(const RDMRequest *request);
   RDMResponse *GetIFCInterfaceType(const RDMRequest *request);
+  RDMResponse *GetIFCIPV4DNS(const RDMRequest *request);
   RDMResponse *GetIFCDNSLabel(const RDMRequest *request);
   RDMResponse *GetIFCDNSDomain(const RDMRequest *request);
 
