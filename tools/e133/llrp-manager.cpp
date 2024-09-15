@@ -415,6 +415,10 @@ int main(int argc, char* argv[]) {
 
   std::cout << "IF " << m_interface << std::endl;
 
+  if (!m_socket.SetMulticastInterface(m_interface.ip_address)) {
+    return false;
+  }
+
   // If we enable multicast loopback, we can test two bits of software on the
   // same machine, but we get, and must ignore, all our own requests too
   if (!m_socket.JoinMulticast(m_interface.ip_address, *addr, true)) {
