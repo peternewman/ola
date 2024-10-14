@@ -362,57 +362,56 @@ pid {
   }
   get_sub_device_range: ROOT_OR_SUBDEVICE
 }
-# TODO(Peter): Need to implement the UINT64 type within the PID Proto
-#pid {
-#  name: "IFC_INTERFACE_LINE_SPEED"
-#  value: 
-#  get_request {
-#    field {
-#      type: UINT32
-#      name: "interface_id"
-#      range {
-#        min: 1
-#        max: 4294967295
-#      }
-#    }
-#  }
-#  get_response {
-#    field {
-#      type: UINT32
-#      name: "interface_id"
-#    }
-#    field {
-#      type: UINT64
-#      name: "line_speed"
-#    }
-#  }
-#  get_sub_device_range: ROOT_OR_SUBDEVICE
-#}
-#pid {
-#  name: "IFC_INTERFACE_UTILIZATION"
-#  value: 
-#  get_request {
-#    field {
-#      type: UINT32
-#      name: "interface_id"
-#      range {
-#        min: 1
-#        max: 4294967295
-#      }
-#    }
-#  }
-#  get_response {
-#    field {
-#      type: UINT32
-#      name: "interface_id"
-#    }
-#    field {
-#      type: UINT64
-#      name: "utilization"
-#    }
-#  }
-#  get_sub_device_range: ROOT_OR_SUBDEVICE
-#}
+pid {
+  name: "IFC_INTERFACE_LINE_SPEED"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT64
+      name: "line_speed"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
+pid {
+  name: "IFC_INTERFACE_UTILIZATION"
+  value: 
+  get_request {
+    field {
+      type: UINT32
+      name: "interface_id"
+      range {
+        min: 1
+        max: 4294967295
+      }
+    }
+  }
+  get_response {
+    field {
+      type: UINT32
+      name: "interface_id"
+    }
+    field {
+      type: UINT64
+      name: "utilization"
+    }
+  }
+  get_sub_device_range: ROOT_OR_SUBDEVICE
+}
 pid {
   name: "IFC_INTERFACE_DUPLEX_MODE"
   value: 
