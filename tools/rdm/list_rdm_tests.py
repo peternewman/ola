@@ -23,7 +23,6 @@ import getpass
 import logging
 import sys
 import textwrap
-
 from ola import PidStore
 
 __author__ = 'Peter Newman'
@@ -180,6 +179,30 @@ def GetZero(names, pid, pid_test_base_name, first_atom):
                            (first_atom.__class__.__name__),
                            'OptionalParameterTestFixture'])
       print('  """GET %s for %s 0."""' %
+            (pid.name, first_atom.name.replace('_', ' ')))
+      print('  PID = \'%s\'' % (pid.name))
+    print('')
+    print('')
+
+
+def GetOutOfRange(names, pid, pid_test_base_name, first_atom):
+  if names:
+    print('GetOutOfRange%s' % (pid_test_base_name))
+  else:
+    if len(pid.GetRequest(PidStore.RDM_GET).GetAtoms()) > 1:
+      GenerateClassHeader(True, 'GetOutOfRange', pid_test_base_name, '',
+                          ['TestMixins.GetOutOfRange',
+                           'OptionalParameterTestFixture'])
+      print('#   """GET %s for %s 0."""' %
+            (pid.name, first_atom.name.replace('_', ' ')))
+      print('#   PID = \'%s\'' % (pid.name))
+      print('# TODO(%s): Test get out of range' % (getpass.getuser()))
+    else:
+      GenerateClassHeader(False, 'GetOutOfRange', pid_test_base_name, '',
+                          ['TestMixins.GetOutOfRange%sMixin' %
+                           (first_atom.__class__.__name__),
+                           'OptionalParameterTestFixture'])
+      print('  """GET %s for out of range %s."""' %
             (pid.name, first_atom.name.replace('_', ' ')))
       print('  PID = \'%s\'' % (pid.name))
     print('')
@@ -358,6 +381,8 @@ def main():
           (not first_atom.ValidateRawValueInRange(0) and
            first_atom.ValidateRawValueInRange(1))):
         GetZero(names, pid, pid_test_base_name, first_atom)
+
+      GetOutOfRange(names, pid, pid_test_base_name, first_atom)
 
       GetWithNoData(names, pid, pid_test_base_name)
 
