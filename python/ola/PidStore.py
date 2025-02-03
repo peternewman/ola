@@ -528,6 +528,18 @@ class UInt32(IntAtom):
     super(UInt32, self).__init__(name, 'I', 0xffffffff, **kwargs)
 
 
+class Int64(IntAtom):
+  """An eight-byte signed field."""
+  def __init__(self, name, **kwargs):
+    super(Int64, self).__init__(name, 'q', 0xffffffffffffffff, **kwargs)
+
+
+class UInt64(IntAtom):
+  """An eight-byte unsigned field."""
+  def __init__(self, name, **kwargs):
+    super(UInt64, self).__init__(name, 'Q', 0xffffffffffffffff, **kwargs)
+
+
 class IPV4(IntAtom):
   """A four-byte IPV4 address."""
   def __init__(self, name, **kwargs):
@@ -547,6 +559,29 @@ class IPV4(IntAtom):
     except socket.error as e:
       raise ArgsValidationError("Can't pack data: %s" % e)
     return super(IntAtom, self).Pack(value)
+
+
+class IPV6Atom(FixedSizeAtom):
+  """A sixteen-byte IPV6 address."""
+  def __init__(self, name, **kwargs):
+    super(IPV6Atom, self).__init__(name, 'BBBBBBBBBBBBBBBB')
+
+  def Unpack(self, data):
+    try:
+      return socket.inet_ntop(socket.AF_INET6, data)
+    except socket.error as e:
+      raise ArgsValidationError("Can't unpack data: %s" % e)
+
+  def Pack(self, args):
+    # TODO(Peter): This currently allows some rather quirky values as per
+    # inet_pton, we may want to restrict that in future
+    format_string = self._FormatString()
+    try:
+      data = struct.pack(format_string,
+                         socket.inet_pton(socket.AF_INET6, args[0]))
+    except socket.error as e:
+      raise ArgsValidationError("Can't pack data: %s" % e)
+    return data, 1
 
 
 class MACAtom(FixedSizeAtom):
@@ -1044,7 +1079,7 @@ class PidStore(object):
       if validate:
         if ((pid_pb.value >= RDMConstants.RDM_MANUFACTURER_PID_MIN) and
             (pid_pb.value <= RDMConstants.RDM_MANUFACTURER_PID_MAX)):
-          raise InvalidPidFormat('%0x04hx between %0x04hx and %0x04hx in %s' %
+          raise InvalidPidFormat('0x%04hx between 0x%04hx and 0x%04hx in %s' %
                                  (pid_pb.value,
                                   RDMConstants.RDM_MANUFACTURER_PID_MIN,
                                   RDMConstants.RDM_MANUFACTURER_PID_MAX,
@@ -1080,7 +1115,7 @@ class PidStore(object):
           if ((pid_pb.value < RDMConstants.RDM_MANUFACTURER_PID_MIN) or
               (pid_pb.value > RDMConstants.RDM_MANUFACTURER_PID_MAX)):
             raise InvalidPidFormat(
-              'Manufacturer pid 0x%04hx not between %0x04hx and %0x04hx' %
+              'Manufacturer pid 0x%04hx not between 0x%04hx and 0x%04hx' %
               (pid_pb.value,
                RDMConstants.RDM_MANUFACTURER_PID_MIN,
                RDMConstants.RDM_MANUFACTURER_PID_MAX))
@@ -1269,8 +1304,14 @@ class PidStore(object):
       return Int32(field_name, **args)
     elif field.type == Pids_pb2.UINT32:
       return UInt32(field_name, **args)
+    elif field.type == Pids_pb2.INT64:
+      return Int64(field_name, **args)
+    elif field.type == Pids_pb2.UINT64:
+      return UInt64(field_name, **args)
     elif field.type == Pids_pb2.IPV4:
       return IPV4(field_name, **args)
+    elif field.type == Pids_pb2.IPV6:
+      return IPV6Atom(field_name, **args)
     elif field.type == Pids_pb2.MAC:
       return MACAtom(field_name, **args)
     elif field.type == Pids_pb2.UID:
