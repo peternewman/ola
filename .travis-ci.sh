@@ -10,7 +10,8 @@ CPP_LINT_URL="https://raw.githubusercontent.com/google/styleguide/gh-pages/cppli
 COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
 
 SPELLINGBLACKLIST=$(cat <<-BLACKLIST
-      -wholename "./.codespellignore" -or \
+      -wholename "./.codespellignorewords" -or \
+      -wholename "./.codespellignorelines" -or \
       -wholename "./.git/*" -or \
       -wholename "./aclocal.m4" -or \
       -wholename "./config/config.guess" -or \
@@ -52,7 +53,7 @@ if [[ $TASK = 'lint' ]]; then
   # the following is a bit of a hack to build the files normally built during
   # the build, so they are present for linting to run against
   travis_fold start "make_builtfiles"
-  make builtfiles;
+  make builtfiles VERBOSE=1;
   travis_fold end "make_builtfiles"
   # first check we've not got any generic NOLINTs
   # count the number of generic NOLINTs
@@ -65,23 +66,8 @@ if [[ $TASK = 'lint' ]]; then
   else
     echo "Found $nolints generic NOLINTs"
   fi;
-  # then fetch and run the main cpplint tool
-  wget -O cpplint.py $CPP_LINT_URL;
-  chmod u+x cpplint.py;
-  ./cpplint.py \
-    --filter=-legal/copyright,-readability/streams,-runtime/arrays \
-    $(find ./ \( -name "*.h" -or -name "*.cpp" \) -and ! \( \
-        -wholename "./common/protocol/Ola.pb.*" -or \
-        -wholename "./common/rpc/Rpc.pb.*" -or \
-        -wholename "./common/rpc/TestService.pb.*" -or \
-        -wholename "./common/rdm/Pids.pb.*" -or \
-        -wholename "./config.h" -or \
-        -wholename "./plugins/*/messages/*ConfigMessages.pb.*" -or \
-        -wholename "./tools/ola_trigger/config.tab.*" -or \
-        -wholename "./tools/ola_trigger/lex.yy.cpp" \) | xargs)
-  if [[ $? -ne 0 ]]; then
-    exit 1;
-  fi;
+  # run the cpplint tool, fetching it if necessary
+  make cpplint VERBOSE=1
 elif [[ $TASK = 'check-licences' ]]; then
   # check licences only if it is the requested task
   travis_fold start "autoreconf"
@@ -93,7 +79,7 @@ elif [[ $TASK = 'check-licences' ]]; then
   # the following is a bit of a hack to build the files normally built during
   # the build, so they are present for licence checking to run against
   travis_fold start "make_builtfiles"
-  make builtfiles;
+  make builtfiles VERBOSE=1;
   travis_fold end "make_builtfiles"
   ./scripts/enforce_licence.py
   if [[ $? -ne 0 ]]; then
@@ -110,7 +96,7 @@ elif [[ $TASK = 'spellintian' ]]; then
   # the following is a bit of a hack to build the files normally built during
   # the build, so they are present for spellintian to run against
   travis_fold start "make_builtfiles"
-  make builtfiles;
+  make builtfiles VERBOSE=1;
   travis_fold end "make_builtfiles"
   spellingfiles=$(eval "find ./ -type f -and ! \( \
       $SPELLINGBLACKLIST \
@@ -136,7 +122,7 @@ elif [[ $TASK = 'spellintian-duplicates' ]]; then
   # the following is a bit of a hack to build the files normally built during
   # the build, so they are present for spellintian to run against
   travis_fold start "make_builtfiles"
-  make builtfiles;
+  make builtfiles VERBOSE=1;
   travis_fold end "make_builtfiles"
   spellingfiles=$(eval "find ./ -type f -and ! \( \
       $SPELLINGBLACKLIST \
@@ -162,16 +148,16 @@ elif [[ $TASK = 'codespell' ]]; then
   # the following is a bit of a hack to build the files normally built during
   # the build, so they are present for codespell to run against
   travis_fold start "make_builtfiles"
-  make builtfiles;
+  make builtfiles VERBOSE=1;
   travis_fold end "make_builtfiles"
   spellingfiles=$(eval "find ./ -type f -and ! \( \
       $SPELLINGBLACKLIST \
       \) | xargs")
   # count the number of codespell errors
-  spellingerrors=$(zrun codespell --check-filenames --check-hidden --quiet 2 --regex "[a-zA-Z0-9][\\-'a-zA-Z0-9]+[a-zA-Z0-9]" --exclude-file .codespellignore $spellingfiles 2>&1 | wc -l)
+  spellingerrors=$(zrun codespell --check-filenames --check-hidden --quiet 2 --regex "[a-zA-Z0-9][\\-'a-zA-Z0-9]+[a-zA-Z0-9]" --exclude-file .codespellignorelines --ignore-words .codespellignorewords $spellingfiles 2>&1 | wc -l)
   if [[ $spellingerrors -ne 0 ]]; then
-    # print the output for info
-    zrun codespell --check-filenames --check-hidden --quiet 2 --regex "[a-zA-Z0-9][\\-'a-zA-Z0-9]+[a-zA-Z0-9]" --exclude-file .codespellignore $spellingfiles
+    # print the output for info, including the count
+    zrun codespell --count --check-filenames --check-hidden --quiet 2 --regex "[a-zA-Z0-9][\\-'a-zA-Z0-9]+[a-zA-Z0-9]" --exclude-file .codespellignorelines --ignore-words .codespellignorewords $spellingfiles
     echo "Found $spellingerrors spelling errors via codespell"
     exit 1;
   else
@@ -189,13 +175,13 @@ elif [[ $TASK = 'doxygen' ]]; then
   # the following is a bit of a hack to build the files normally built during
   # the build, so they are present for Doxygen to run against
   travis_fold start "make_builtfiles"
-  make builtfiles;
+  make builtfiles VERBOSE=1;
   travis_fold end "make_builtfiles"
   # count the number of warnings
   warnings=$(make doxygen-doc 2>&1 >/dev/null | wc -l)
   if [[ $warnings -ne 0 ]]; then
     # print the output for info
-    make doxygen-doc
+    make doxygen-doc VERBOSE=1
     echo "Found $warnings doxygen warnings"
     exit 1;
   else
@@ -214,7 +200,7 @@ elif [[ $TASK = 'coverage' ]]; then
   make;
   travis_fold end "make"
   travis_fold start "make_check"
-  make check;
+  make check VERBOSE=1;
   travis_fold end "make_check"
 elif [[ $TASK = 'coverity' ]]; then
   # Run Coverity Scan unless token is zero length
@@ -241,11 +227,12 @@ elif [[ $TASK = 'flake8' ]]; then
   # the following is a bit of a hack to build the files normally built during
   # the build, so they are present for flake8 to run against
   travis_fold start "make_builtfiles"
-  make builtfiles;
+  make builtfiles VERBOSE=1;
   travis_fold end "make_builtfiles"
-  flake8 --max-line-length 80 --exclude *_pb2.py,.git,__pycache --ignore E111,E114,E121,E127,E129,W504 data/rdm include/ola python scripts tools/ola_mon tools/rdm
+  make flake8
 else
   # Otherwise compile and check as normal
+  # Env var name DISTCHECK_CONFIGURE_FLAGS must be used, see #1881 and #1883
   if [[ "$TRAVIS_OS_NAME" = "linux" ]]; then
     # Silence all deprecated declarations on Linux due to auto_ptr making the build log too long
     export DISTCHECK_CONFIGURE_FLAGS='--enable-rdm-tests --enable-ja-rule --enable-e133 CPPFLAGS=-Wno-deprecated-declarations'
@@ -259,7 +246,7 @@ else
   ./configure $DISTCHECK_CONFIGURE_FLAGS;
   travis_fold end "configure"
   travis_fold start "make_distcheck"
-  make distcheck;
+  make distcheck VERBOSE=1;
   travis_fold end "make_distcheck"
   travis_fold start "make_dist"
   make dist;
