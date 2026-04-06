@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_tag: [bullseye, bookworm, trixie, sid]
+        image_tag: [bullseye, bookworm, trixie, forky, sid]
         architecture: [amd64]
     container: debian:${{ matrix.image_tag }}
     steps:
@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_tag: [bullseye, bookworm, trixie, sid]
+        image_tag: [bullseye, bookworm, trixie, forky, sid]
         architecture: [amd64]
     container: debian:${{ matrix.image_tag }}
     steps:
