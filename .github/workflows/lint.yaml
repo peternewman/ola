@@ -158,8 +158,10 @@ jobs:
         run: python3 -m pip install --no-input cpplint
       - name: Enable Problem Matcher for GitHub annotations
         run: echo "::add-matcher::.github/problem-matcher-lint-cpplint.json"
+      - name: pwd
+        run: pwd
       - name: cpplint
-        run: make cpplint ROOT=__w/ola/ola/ VERBOSE=1
+        run: make cpplint REPOSITORY=. VERBOSE=5
   flake8:
     name: flake8
     runs-on: ubuntu-latest
