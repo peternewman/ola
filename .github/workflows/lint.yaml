@@ -160,8 +160,20 @@ jobs:
         run: echo "::add-matcher::.github/problem-matcher-lint-cpplint.json"
       - name: pwd
         run: pwd
-      - name: cpplint
+      - name: cpplint 1
         run: make cpplint REPOSITORY=. VERBOSE=5
+      - name: cpplint 2
+        run: make cpplint REPOSITORY=/__w/ola/ola VERBOSE=5
+      - name: cpplint 3
+        run: make cpplint REPOSITORY=__w VERBOSE=5
+      - name: cpplint 4
+        run: make cpplint ROOT=. VERBOSE=5
+      - name: cpplint 5
+        run: make cpplint ROOT=/__w/ola/ola VERBOSE=5
+      - name: cpplint 6
+        run: make cpplint ROOT=__w VERBOSE=5
+      - name: cpplint 1
+        run: make cpplint VERBOSE=0
   flake8:
     name: flake8
     runs-on: ubuntu-latest
