@@ -260,7 +260,7 @@ CPP_LINT_FILES = $(shell find . \( -name "*.h" -or -name "*.cpp" \) -and ! \( \
 .PHONY : cpplint
 cpplint: Makefile.am
 if FOUND_CPPLINT
-	cpplint --repository=__w --filter=$(CPP_LINT_FILTER) $(CPP_LINT_FILES)
+	cpplint --repository=. --filter=$(CPP_LINT_FILTER) $(CPP_LINT_FILES)
 else
 	$(error cpplint not found. Install the forked cpplint (e.g. via pip for the latest version) and re-run configure.)
 endif
