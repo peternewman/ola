@@ -66,7 +66,14 @@ inline void StrNCopy(char (&output)[size], const char* input) {
  * @note max_length must be less than or equal to the input string's length.
  */
 inline size_t StrNLength(const char* input, size_t max_length) {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wvla-cxx-extension"
+#endif  // __clang__
   char test[max_length + 1];
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif  // __clang__
   strncpy(test, input, max_length);
   test[max_length] = 0;
   return strlen(test);
