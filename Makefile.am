@@ -68,7 +68,7 @@ if FATAL_WARNINGS
                               -Wno-error=deprecated-declarations \
                               -Wno-error=sign-compare \
                               -Wno-error=ignored-qualifiers
-  COMMON_TESTING_FLAGS += -Werror
+  COMMON_TESTING_FLAGS += -Werror -Wno-error=vla-cxx-extension
   COMMON_TESTING_PROTOBUF_FLAGS += -Werror -Wno-error=unused-parameter \
                                    -Wno-error=deprecated-declarations
 
