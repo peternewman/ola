@@ -206,11 +206,18 @@ bool ServerInit(int *argc,
                 const string &first_line,
                 const string &description) {
   // Take a copy of the arguments otherwise the export map is incorrect.
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wvla-cxx-extension"
+#endif  // __clang__
   int original_argc = *argc;
   char *original_argv[original_argc];
   for (int i = 0; i < original_argc; i++) {
     original_argv[i] = argv[i];
   }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif  // __clang__
   SetHelpString(first_line, description);
   ParseFlags(argc, argv);
   InitLoggingFromFlags();
