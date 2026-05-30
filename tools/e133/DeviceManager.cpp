@@ -53,10 +53,10 @@ DeviceManager::~DeviceManager() {}
 
 
 /**
- * Set the callback to be run when RDMNet data is received from a device.
- * @param callback the RDMMesssageCallback to run when data is received.
+ * Set the callback to be run when RDMnet data is received from a device.
+ * @param callback the RDMMessageCallback to run when data is received.
  */
-void DeviceManager::SetRDMMessageCallback(RDMMesssageCallback *callback) {
+void DeviceManager::SetRDMMessageCallback(RDMMessageCallback *callback) {
   m_impl->SetRDMMessageCallback(callback);
 }
 

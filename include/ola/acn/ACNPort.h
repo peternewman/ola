@@ -27,7 +27,7 @@
  * [ACN on
  * wikipedia](http://en.wikipedia.org/wiki/Architecture_for_Control_Networks).
  *
- * This covers code for E1.31 (Streaming ACN) and E1.33 (RDMNet).
+ * This covers code for E1.31 (Streaming ACN) and E1.33 (RDMnet).
  */
 
 /**
@@ -60,6 +60,11 @@ const uint16_t ACN_PORT = 5568;
  * @brief The port used for E1.33 communication.
  */
 const uint16_t E133_PORT = 5569;
+
+/**
+ * @brief The port used for E1.33 LLRP communication.
+ */
+const uint16_t LLRP_PORT = 5569;
 
 /**
  * @}

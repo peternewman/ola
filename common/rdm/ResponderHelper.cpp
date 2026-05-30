@@ -47,6 +47,7 @@ using ola::network::InterfacePicker;
 using ola::network::IPV4Address;
 using ola::network::MACAddress;
 using ola::network::NetworkToHost;
+using ola::strings::StrNLength;
 using std::min;
 using std::string;
 using std::vector;
@@ -77,6 +78,24 @@ bool ResponderHelper::ExtractUInt16(const RDMRequest *request,
 bool ResponderHelper::ExtractUInt32(const RDMRequest *request,
                                     uint32_t *output) {
   return GenericExtractValue(request, output);
+}
+
+bool ResponderHelper::ExtractString(const RDMRequest *request,
+                                    string *output,
+                                    uint8_t max_length) {
+  if (request->ParamDataSize() > max_length) {
+    return false;
+  }
+
+  size_t len = static_cast<size_t>(request->ParamDataSize());
+  if (request->ParamData() != NULL) {
+    // StrNLength ensures we stop on the first null we hit
+    len = StrNLength(reinterpret_cast<const char*>(request->ParamData()),
+                     min(len, static_cast<size_t>(max_length)));
+  }
+  const string value(reinterpret_cast<const char*>(request->ParamData()), len);
+  *output = value;
+  return true;
 }
 
 
@@ -946,7 +965,7 @@ RDMResponse *ResponderHelper::GetParamDescription(
     uint32_t min_value,
     uint32_t default_value,
     uint32_t max_value,
-    string description,
+    const string &description,
     uint8_t queued_message_count) {
   PACK(
   struct parameter_description_s {
@@ -997,11 +1016,11 @@ RDMResponse *ResponderHelper::GetParamDescription(
 }
 
 RDMResponse *ResponderHelper::GetASCIIParamDescription(
-        const RDMRequest *request,
-        uint16_t pid,
-        rdm_command_class command_class,
-        string description,
-        uint8_t queued_message_count) {
+    const RDMRequest *request,
+    uint16_t pid,
+    rdm_command_class command_class,
+    const string &description,
+    uint8_t queued_message_count) {
   return GetParamDescription(
       request,
       pid,
@@ -1018,12 +1037,12 @@ RDMResponse *ResponderHelper::GetASCIIParamDescription(
 }
 
 RDMResponse *ResponderHelper::GetBitFieldParamDescription(
-        const RDMRequest *request,
-        uint16_t pid,
-        uint8_t pdl_size,
-        rdm_command_class command_class,
-        string description,
-        uint8_t queued_message_count) {
+    const RDMRequest *request,
+    uint16_t pid,
+    uint8_t pdl_size,
+    rdm_command_class command_class,
+    const string &description,
+    uint8_t queued_message_count) {
   return GetParamDescription(
       request,
       pid,
@@ -1051,6 +1070,236 @@ RDMResponse *ResponderHelper::GetIPV4Address(
                         // already
                         NetworkToHost(value.AsInt()),
                         queued_message_count);
+}
+
+RDMResponse *ResponderHelper::GetTestData(
+    const RDMRequest *request,
+    uint8_t queued_message_count) {
+  uint16_t pattern_length;
+  if (!ExtractUInt16(request, &pattern_length)) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  if (pattern_length > MAX_RDM_TEST_DATA_PATTERN_LENGTH) {
+    return NackWithReason(request, NR_DATA_OUT_OF_RANGE, queued_message_count);
+  }
+
+  uint8_t pattern_data[pattern_length];
+
+  for (unsigned int i = 0; i < pattern_length; i++) {
+    // Need to return values 0-255, 0... etc
+    pattern_data[i] = i % (UINT8_MAX + 1);
+  }
+
+  return GetResponseFromData(
+      request,
+      reinterpret_cast<uint8_t*>(&pattern_data),
+      sizeof(pattern_data),
+      RDM_ACK,
+      queued_message_count);
+}
+
+RDMResponse *ResponderHelper::SetTestData(
+    const RDMRequest *request,
+    uint8_t queued_message_count) {
+  return GetResponseFromData(
+      request,
+      request->ParamData(),
+      request->ParamDataSize(),
+      RDM_ACK,
+      queued_message_count);
+}
+
+/**
+ * Get NSC comms status
+ */
+RDMResponse *ResponderHelper::GetCommsStatusNSC(
+    const RDMRequest *request,
+    const NSCStatus *status,
+    uint8_t queued_message_count) {
+  if (request->ParamDataSize()) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  PACK(
+  struct comms_status_nsc_s {
+    uint8_t supported_fields;
+    uint32_t additive_checksum;
+    uint32_t packet_count;
+    uint16_t most_recent_slot_count;
+    uint16_t min_slot_count;
+    uint16_t max_slot_count;
+    uint32_t packet_error_count;
+  });
+  STATIC_ASSERT(sizeof(comms_status_nsc_s) == 19);
+
+  struct comms_status_nsc_s comms_status_nsc;
+  comms_status_nsc.supported_fields = status->SupportedFieldsBitMask();
+  comms_status_nsc.additive_checksum = HostToNetwork(
+      status->AdditiveChecksum());
+  comms_status_nsc.packet_count = HostToNetwork(status->PacketCount());
+  comms_status_nsc.most_recent_slot_count = HostToNetwork(
+      status->MostRecentSlotCount());
+  comms_status_nsc.min_slot_count = HostToNetwork(status->MinSlotCount());
+  comms_status_nsc.max_slot_count = HostToNetwork(status->MaxSlotCount());
+  comms_status_nsc.packet_error_count = HostToNetwork(
+      status->PacketErrorCount());
+  return GetResponseFromData(
+    request,
+    reinterpret_cast<const uint8_t*>(&comms_status_nsc),
+    sizeof(comms_status_nsc),
+    RDM_ACK,
+    queued_message_count);
+}
+
+/**
+ * Set NSC comms status
+ */
+RDMResponse *ResponderHelper::SetCommsStatusNSC(
+    const RDMRequest *request,
+    NSCStatus *status,
+    uint8_t queued_message_count) {
+  if (request->ParamDataSize()) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  // Reset the counts...
+  status->Reset();
+
+  return GetResponseFromData(request, NULL, queued_message_count);
+}
+
+RDMResponse *ResponderHelper::GetListTags(
+    const RDMRequest *request,
+    const TagSet *tag_set,
+    uint8_t queued_message_count) {
+  if (request->ParamDataSize()) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  uint8_t tags[(MAX_RDM_STRING_LENGTH + 1) * tag_set->Size()];
+  unsigned int pdl = sizeof(tags);
+
+  tag_set->Pack(tags, &pdl);
+
+  return GetResponseFromData(request, tags, pdl,
+                             RDM_ACK, queued_message_count);
+}
+
+RDMResponse *ResponderHelper::SetAddTag(
+    const RDMRequest *request,
+    TagSet *tag_set,
+    uint8_t queued_message_count) {
+  string tag;
+  if (!ResponderHelper::ExtractString(request, &tag)) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  tag_set->AddTag(tag);
+
+  return ResponderHelper::EmptySetResponse(request, queued_message_count);
+}
+
+RDMResponse *ResponderHelper::SetRemoveTag(
+    const RDMRequest *request,
+    TagSet *tag_set,
+    uint8_t queued_message_count) {
+  string tag;
+  if (!ResponderHelper::ExtractString(request, &tag)) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  if (tag_set->Contains(tag)) {
+    tag_set->RemoveTag(tag);
+
+    return ResponderHelper::EmptySetResponse(request, queued_message_count);
+  } else {
+    return NackWithReason(request, NR_DATA_OUT_OF_RANGE, queued_message_count);
+  }
+}
+
+RDMResponse *ResponderHelper::GetCheckTag(
+    const RDMRequest *request,
+    const TagSet *tag_set,
+    uint8_t queued_message_count) {
+  string tag;
+  if (!ResponderHelper::ExtractString(request, &tag)) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  uint8_t param = tag_set->Contains(tag) ? 1 : 0;
+
+  return GetResponseFromData(request, &param, sizeof(param),
+                             RDM_ACK, queued_message_count);
+}
+
+RDMResponse *ResponderHelper::SetClearTags(
+    const RDMRequest *request,
+    TagSet *tag_set,
+    uint8_t queued_message_count) {
+  if (request->ParamDataSize()) {
+    return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
+  }
+
+  tag_set->Clear();
+
+  return ResponderHelper::EmptySetResponse(request, queued_message_count);
+}
+
+RDMResponse *ResponderHelper::GetMetadataParameterVersion(
+    const RDMRequest *request,
+    uint16_t pid,
+    uint16_t version,
+    uint8_t queued_message_count) {
+  PACK(
+  struct metadata_parameter_version_s {
+    uint16_t pid;
+    uint16_t version;
+  });
+  STATIC_ASSERT(sizeof(metadata_parameter_version_s) == 4);
+
+  struct metadata_parameter_version_s metadata_param_version;
+  metadata_param_version.pid = HostToNetwork(pid);
+  metadata_param_version.version = HostToNetwork(version);
+
+  return GetResponseFromData(
+      request,
+      reinterpret_cast<uint8_t*>(&metadata_param_version),
+      sizeof(metadata_parameter_version_s),
+      RDM_ACK,
+      queued_message_count);
+}
+
+RDMResponse *ResponderHelper::GetMetadataJSON(
+    const RDMRequest *request,
+    uint16_t pid,
+    const string &json,
+    uint8_t queued_message_count) {
+  PACK(
+  struct metadata_json_s {
+    uint16_t pid;
+    // TODO(Peter): This should effectively be unlimited...?
+    char json[(UINT8_MAX - 2)];
+  });
+  STATIC_ASSERT(sizeof(metadata_json_s) == UINT8_MAX);
+
+  struct metadata_json_s metadata_json;
+  metadata_json.pid = HostToNetwork(pid);
+
+  size_t str_len = min(json.size(),
+                       sizeof(metadata_json.json));
+  strncpy(metadata_json.json, json.c_str(), str_len);
+
+  unsigned int param_data_size = (
+      sizeof(metadata_json) -
+      sizeof(metadata_json.json) + str_len);
+
+  return GetResponseFromData(
+      request,
+      reinterpret_cast<uint8_t*>(&metadata_json),
+      param_data_size,
+      RDM_ACK,
+      queued_message_count);
 }
 
 /**
@@ -1111,8 +1360,8 @@ RDMResponse *ResponderHelper::SetString(
 }
 
 RDMResponse *ResponderHelper::GetBoolValue(const RDMRequest *request,
-                                                 bool value,
-                                                 uint8_t queued_message_count) {
+                                           bool value,
+                                           uint8_t queued_message_count) {
   if (request->ParamDataSize()) {
     return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
   }
@@ -1123,8 +1372,8 @@ RDMResponse *ResponderHelper::GetBoolValue(const RDMRequest *request,
 }
 
 RDMResponse *ResponderHelper::SetBoolValue(const RDMRequest *request,
-                                                 bool *value,
-                                                 uint8_t queued_message_count) {
+                                           bool *value,
+                                           uint8_t queued_message_count) {
   uint8_t arg;
   if (!ResponderHelper::ExtractUInt8(request, &arg)) {
     return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
@@ -1140,8 +1389,8 @@ RDMResponse *ResponderHelper::SetBoolValue(const RDMRequest *request,
 
 template<typename T>
 static RDMResponse *GenericGetIntValue(const RDMRequest *request,
-                                             T value,
-                                             uint8_t queued_message_count = 0) {
+                                       T value,
+                                       uint8_t queued_message_count = 0) {
   if (request->ParamDataSize()) {
     return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
   }
@@ -1177,8 +1426,8 @@ RDMResponse *ResponderHelper::GetUInt32Value(
 
 template<typename T>
 static RDMResponse *GenericSetIntValue(const RDMRequest *request,
-                                             T *value,
-                                             uint8_t queued_message_count = 0) {
+                                       T *value,
+                                       uint8_t queued_message_count = 0) {
   if (!GenericExtractValue(request, value)) {
     return NackWithReason(request, NR_FORMAT_ERROR, queued_message_count);
   }

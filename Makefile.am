@@ -195,7 +195,7 @@ install-exec-hook: $(INSTALL_EXEC_HOOKS)
 # -----------------------------------------------------------------------------
 
 # This gives us a rather hacky method to build the files normally built during
-# the build, so they are present for Doxygen to run against
+# the build, so they are present for Doxygen etc to run against
 builtfiles : Makefile.am $(built_sources)
 .PHONY : builtfiles
 
@@ -241,14 +241,14 @@ lint: flake8 cpplint
 .PHONY : flake8
 flake8: Makefile.am
 if FOUND_FLAKE8
-	flake8
+	flake8 --statistics --count
 else
 	$(error flake8 not found. Install flake8 and re-run configure.)
 endif
 
 # cpplint linter
-CPP_LINT_URL = "https://raw.githubusercontent.com/google/styleguide/gh-pages/cpplint/cpplint.py"
-CPP_LINT_FILTER = "-legal/copyright,-readability/streams,-runtime/arrays"
+CPP_LINT_FILTER = "-legal/copyright,-readability/streams,-runtime/arrays,-whitespace/indent_namespace"
+CPP_LINT_FILE_ROOT = $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 CPP_LINT_FILES = $(shell find . \( -name "*.h" -or -name "*.cpp" \) -and ! \( \
         -wholename "./common/protocol/Ola.pb.*" -or \
         -wholename "./common/rpc/Rpc.pb.*" -or \
@@ -259,16 +259,42 @@ CPP_LINT_FILES = $(shell find . \( -name "*.h" -or -name "*.cpp" \) -and ! \( \
         -wholename "./tools/ola_trigger/config.tab.*" -or \
         -wholename "./tools/ola_trigger/lex.yy.cpp" \) | xargs)
 .PHONY : cpplint
-if FOUND_CPPLINT
 cpplint: Makefile.am
-	cpplint.py --filter=$(CPP_LINT_FILTER) $(CPP_LINT_FILES)
+if FOUND_CPPLINT
+# Pass in the repository to cpplint so stuff like header guards always have the
+# same path and it works even outside of a git checkout
+	cpplint --repository=$(CPP_LINT_FILE_ROOT) --filter=$(CPP_LINT_FILTER) $(CPP_LINT_FILES)
 else
-cpplint: Makefile.am cpplint.py
-	./cpplint.py --filter=$(CPP_LINT_FILTER) $(CPP_LINT_FILES)
+	$(error cpplint not found. Install the forked cpplint (e.g. via pip for the latest version) and re-run configure.)
 endif
 
-if !FOUND_CPPLINT
-cpplint.py:
-	wget -O cpplint.py $(CPP_LINT_URL)
-	chmod u+x cpplint.py
+# coverage
+COVERAGE_OUTPUTS = --txt coverage/coverage.txt \
+	--csv coverage/coverage.csv \
+	--json coverage/coverage.json \
+	--cobertura coverage/coverage.cobertura.xml \
+	--html-details coverage/details.html/coverage.details.html \
+	--coveralls coverage/coverage.coveralls.json
+# See https://gcovr.com/en/stable/guide/gcov_parser.html#negative-hit-counts
+COVERAGE_FLAGS = --gcov-ignore-parse-errors=negative_hits.warn_once_per_file
+COVERAGE_GCOV_EXE = --gcov-executable /usr/bin/gcov
+COVERAGE_FILTERS = -e '.*Test\.cpp$$' \
+	-e '.*\.pb\.cc$$' \
+	-e '.*\.pb\.cpp$$' \
+	-e '.*\.pb\.h$$' \
+	-e '.*\.yy\.cpp$$' \
+	-e '.*\.tab\.cpp$$' \
+	-e '.*\.tab\.h$$' \
+	-e '.*/doxygen/examples.*$$'
+.PHONY : coverage
+coverage: Makefile.am check
+if !BUILD_GCOV
+	$(error Generating coverage requires configuring with --enable-gcov)
+else
+if FOUND_GCOVR
+	mkdir -p coverage/details.html/
+	gcovr $(COVERAGE_FLAGS) --print-summary $(COVERAGE_OUTPUTS) $(COVERAGE_GCOV_EXE) --root . $(COVERAGE_FILTERS)
+else
+	$(error gcovr not found. Install gcovr (e.g. via pip for the latest version) and re-run configure.)
+endif
 endif

@@ -16,10 +16,13 @@
 # Copyright (C) 2011 Simon Newton
 
 from __future__ import print_function
+
 import logging
-from ola import PidStore, RDMConstants
+
 from ola.OlaClient import OlaClient, RDMNack
 from ola.RDMAPI import RDMAPI
+
+from ola import PidStore, RDMConstants
 
 '''Quick script to collect information about responders.'''
 
@@ -53,7 +56,13 @@ class ModelCollector(object):
    LANGUAGES,
    SLOT_INFO,
    SLOT_DEFAULT_VALUE,
-   SLOT_DESCRIPTION) = range(14)
+   SLOT_DESCRIPTION,
+   MANUFACTURER_URL,
+   PRODUCT_URL,
+   FIRMWARE_URL,
+   METADATA_PARAMETER_VERSION,
+   METADATA_JSON,
+   METADATA_JSON_URL) = range(20)
 
   def __init__(self, wrapper, pid_store):
     self.wrapper = wrapper
@@ -92,6 +101,8 @@ class ModelCollector(object):
     self.outstanding_pid = None
     self.work_state = None
     self.manufacturer_pids = []
+    self.metadata_parameter_version_pids = []
+    self.metadata_json_pids = []
     self.slots = set()
     self.personalities = []
     self.sensors = []
@@ -106,7 +117,7 @@ class ModelCollector(object):
     if this_device:
       software_versions = this_device['software_versions']
       if software_versions.keys():
-        return software_versions[software_versions.keys()[0]]
+        return software_versions[list(software_versions.keys())[0]]
     return None
 
   def _GetPersonality(self, personality):
@@ -135,6 +146,15 @@ class ModelCollector(object):
     this_device = self._GetDevice()
     if this_device:
       return this_device.get('language', DEFAULT_LANGUAGE)
+    return None
+
+  def _GetParameterMetadata(self, pid):
+    this_device = self._GetDevice()
+    if this_device:
+      this_version = self._GetVersion()
+      if this_version:
+        return this_version.setdefault('parameter_metadata', {}).setdefault(
+            pid, {})
     return None
 
   def _CheckPidSupported(self, pid):
@@ -196,6 +216,18 @@ class ModelCollector(object):
       self._HandleSlotDefaultValue(unpacked_data)
     elif self.work_state == self.SLOT_DESCRIPTION:
       self._HandleSlotDescription(unpacked_data)
+    elif self.work_state == self.MANUFACTURER_URL:
+      self._HandleManufacturerURL(unpacked_data)
+    elif self.work_state == self.PRODUCT_URL:
+      self._HandleProductURL(unpacked_data)
+    elif self.work_state == self.FIRMWARE_URL:
+      self._HandleFirmwareURL(unpacked_data)
+    elif self.work_state == self.METADATA_PARAMETER_VERSION:
+      self._HandleMetadataParameterVersion(unpacked_data)
+    elif self.work_state == self.METADATA_JSON:
+      self._HandleMetadataJSON(unpacked_data)
+    elif self.work_state == self.METADATA_JSON_URL:
+      self._HandleMetadataJSONURL(unpacked_data)
 
   def _HandleDeviceInfo(self, data):
     """Called when we get a DEVICE_INFO response."""
@@ -208,7 +240,11 @@ class ModelCollector(object):
                 'sensor_count',
                 'sub_device_count']
       for field in fields:
-        this_device[field] = data[field]
+        if field in data:
+          this_device[field] = data[field]
+        else:
+          print('Failed to get %s from device info for UID %s'
+                % (field, self.uid))
 
       this_device['software_versions'][data['software_version']] = {
           'languages': [],
@@ -266,6 +302,9 @@ class ModelCollector(object):
             param_info['param_id'] <=
             RDMConstants.RDM_MANUFACTURER_PID_MAX):
           self.manufacturer_pids.append(param_info['param_id'])
+      # Duplicate the list of manufacturer PIDs for other processing
+      self.metadata_parameter_version_pids.extend(self.manufacturer_pids)
+      self.metadata_json_pids.extend(self.manufacturer_pids)
     self._NextState()
 
   def _HandleSoftwareVersionLabel(self, data):
@@ -375,6 +414,45 @@ class ModelCollector(object):
                                               ] = data['name']
     self._FetchNextSlotDescription()
 
+  def _HandleManufacturerURL(self, data):
+    """Called when we get a MANUFACTURER_URL response."""
+    this_device = self._GetDevice()
+    this_device['manufacturer_url'] = data['url']
+    self._NextState()
+
+  def _HandleProductURL(self, data):
+    """Called when we get a PRODUCT_URL response."""
+    this_device = self._GetDevice()
+    this_device['product_url'] = data['url']
+    self._NextState()
+
+  def _HandleFirmwareURL(self, data):
+    """Called when we get a FIRMWARE_URL response."""
+    this_device = self._GetDevice()
+    this_device['firmware_url'] = data['url']
+    self._NextState()
+
+  def _HandleMetadataParameterVersion(self, data):
+    """Called when we get a METADATA_PARAMETER_VERSION response."""
+    if data is not None:
+      this_param = self._GetParameterMetadata(data['pid'])
+      this_param['metadata_parameter_version'] = data['version']
+    self._FetchNextMetadataParameterVersion()
+
+  def _HandleMetadataJSON(self, data):
+    """Called when we get a METADATA_JSON response."""
+    if data is not None:
+      this_param = self._GetParameterMetadata(data['pid'])
+      # We store the raw string here in case it's not valid JSON
+      this_param['metadata_json'] = data['json'],
+    self._FetchNextMetadataJSON()
+
+  def _HandleMetadataJSONURL(self, data):
+    """Called when we get a METADATA_JSON_URL response."""
+    this_device = self._GetDevice()
+    this_device['metadata_json_url'] = data['url']
+    self._NextState()
+
   def _NextState(self):
     """Move to the next state of information fetching."""
     if self.work_state == self.EMPTYING_QUEUE:
@@ -465,6 +543,52 @@ class ModelCollector(object):
       pid = self.pid_store.GetName('SLOT_DESCRIPTION')
       if self._CheckPidSupported(pid):
         self._FetchNextSlotDescription()
+      else:
+        logging.debug("Skipping pid %s as it's not supported on this device" %
+                      pid)
+        self._NextState()
+    elif self.work_state == self.SLOT_DESCRIPTION:
+      # fetch manufacturer URL
+      self.work_state = self.MANUFACTURER_URL
+      pid = self.pid_store.GetName('MANUFACTURER_URL')
+      if self._CheckPidSupported(pid):
+        self._GetPid(pid)
+      else:
+        logging.debug("Skipping pid %s as it's not supported on this device" %
+                      pid)
+        self._NextState()
+    elif self.work_state == self.MANUFACTURER_URL:
+      # fetch product URL
+      self.work_state = self.PRODUCT_URL
+      pid = self.pid_store.GetName('PRODUCT_URL')
+      if self._CheckPidSupported(pid):
+        self._GetPid(pid)
+      else:
+        logging.debug("Skipping pid %s as it's not supported on this device" %
+                      pid)
+        self._NextState()
+    elif self.work_state == self.PRODUCT_URL:
+      # fetch firmware URL
+      self.work_state = self.FIRMWARE_URL
+      pid = self.pid_store.GetName('FIRMWARE_URL')
+      if self._CheckPidSupported(pid):
+        self._GetPid(pid)
+      else:
+        logging.debug("Skipping pid %s as it's not supported on this device" %
+                      pid)
+        self._NextState()
+    elif self.work_state == self.FIRMWARE_URL:
+      self.work_state = self.METADATA_PARAMETER_VERSION
+      self._FetchNextMetadataParameterVersion()
+    elif self.work_state == self.METADATA_PARAMETER_VERSION:
+      self.work_state = self.METADATA_JSON
+      self._FetchNextMetadataJSON()
+    elif self.work_state == self.METADATA_JSON:
+      # fetch metadata JSON URL
+      self.work_state = self.METADATA_JSON_URL
+      pid = self.pid_store.GetName('METADATA_JSON_URL')
+      if self._CheckPidSupported(pid):
+        self._GetPid(pid)
       else:
         logging.debug("Skipping pid %s as it's not supported on this device" %
                       pid)
@@ -572,6 +696,42 @@ class ModelCollector(object):
       self.outstanding_pid = pid
     else:
       logging.debug('No more slots to fetch SLOT_DESCRIPTION for')
+      self._NextState()
+
+  def _FetchNextMetadataParameterVersion(self):
+    """Fetch the info for the next metadata parameter version, or proceed to
+       the next state if there are none left.
+    """
+    if self.metadata_parameter_version_pids:
+      manufacturer_pid = self.metadata_parameter_version_pids.pop(0)
+      pid = self.pid_store.GetName('METADATA_PARAMETER_VERSION')
+      self.rdm_api.Get(self.universe,
+                       self.uid,
+                       PidStore.ROOT_DEVICE,
+                       pid,
+                       self._RDMRequestComplete,
+                       [manufacturer_pid])
+      logging.debug('Sent METADATA_PARAMETER_VERSION request')
+      self.outstanding_pid = pid
+    else:
+      self._NextState()
+
+  def _FetchNextMetadataJSON(self):
+    """Fetch the info for the next metadata JSON, or proceed to the next state
+       if there are none left.
+    """
+    if self.metadata_json_pids:
+      manufacturer_pid = self.metadata_json_pids.pop(0)
+      pid = self.pid_store.GetName('METADATA_JSON')
+      self.rdm_api.Get(self.universe,
+                       self.uid,
+                       PidStore.ROOT_DEVICE,
+                       pid,
+                       self._RDMRequestComplete,
+                       [manufacturer_pid])
+      logging.debug('Sent METADATA_JSON request')
+      self.outstanding_pid = pid
+    else:
       self._NextState()
 
   def _FetchQueuedMessages(self):

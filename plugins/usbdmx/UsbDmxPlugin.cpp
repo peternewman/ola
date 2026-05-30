@@ -20,6 +20,7 @@
 
 #include "plugins/usbdmx/UsbDmxPlugin.h"
 
+#include <set>
 #include <string>
 
 #include "ola/Logging.h"
@@ -106,6 +107,11 @@ bool UsbDmxPlugin::SetDefaultPreferences() {
       EuroliteProFactory::ENABLE_EUROLITE_MK2_KEY,
       BoolValidator(),
       false);
+
+  save |= m_preferences->SetDefaultValue(
+      EuroliteProFactory::EUROLITE_MK2_SERIAL_KEY,
+      StringValidator(),
+      "");
 
   if (save) {
     m_preferences->Save();

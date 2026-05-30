@@ -34,12 +34,14 @@ olardminclude_HEADERS = \
     include/ola/rdm/RDMReply.h \
     include/ola/rdm/ResponderHelper.h \
     include/ola/rdm/ResponderLoadSensor.h \
+    include/ola/rdm/ResponderNSCStatus.h \
     include/ola/rdm/ResponderOps.h \
     include/ola/rdm/ResponderOpsPrivate.h \
     include/ola/rdm/ResponderPersonality.h \
     include/ola/rdm/ResponderSensor.h \
     include/ola/rdm/ResponderSettings.h \
     include/ola/rdm/ResponderSlotData.h \
+    include/ola/rdm/ResponderTagSet.h \
     include/ola/rdm/SensorResponder.h \
     include/ola/rdm/StringMessageBuilder.h \
     include/ola/rdm/SubDeviceDispatcher.h \
