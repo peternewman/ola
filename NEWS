@@ -213,7 +213,7 @@ x/y/2024 ola-0.10.10
    std::auto_ptr #1028 Debian #831103
  * JsonPatchParser.h tries to include a project header file; move the
    OptionalItem header to includes to resolve #1086
- * Reset the client socket once we've closed it, so it can be re-used
+ * Reset the client socket once we've closed it, so it can be reused
  * Silence a warning in the code so it builds with Protobuf 3 #1110 Debian
    #835433
  * Work around <ernno.h> include failure on MIPS Debian #836383
