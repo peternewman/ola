@@ -760,6 +760,19 @@ AS_IF([test "x$enable_osc" != xno],
 AS_IF([test "x$have_liblo" = xyes],
       [AC_DEFINE([HAVE_LIBLO], [1], [define if liblo is installed])])
 
+# COAP Support.
+# look for libcoap if the user asked us to
+AC_ARG_ENABLE(
+  [signet],
+  [AS_HELP_STRING([--disable-signet],
+                  [Disable the Sig-Net plugin even if libcoap exists])])
+
+have_libcoap="no"
+AS_IF([test "x$enable_signet" != xno],
+      [PKG_CHECK_MODULES(libcoap, [libcoap-1 >= 4.1.2], [have_libcoap="yes"], [true])])
+AS_IF([test "x$have_libcoap" = xyes],
+      [AC_DEFINE([HAVE_LIBCOAP], [1], [define if libcoap is installed])])
+
 # Python API
 AC_ARG_ENABLE(
   [python-libs],
@@ -920,6 +933,7 @@ PLUGIN_SUPPORT(pathport, USE_PATHPORT)
 PLUGIN_SUPPORT(renard, USE_RENARD)
 PLUGIN_SUPPORT(sandnet, USE_SANDNET)
 PLUGIN_SUPPORT(shownet, USE_SHOWNET)
+PLUGIN_SUPPORT(signet, USE_SIGNET, [$have_libcoap])
 PLUGIN_SUPPORT(spi, USE_SPI, [$have_spi])
 PLUGIN_SUPPORT(spidmx, USE_SPIDMX, [$have_spi])
 PLUGIN_SUPPORT(stageprofi, USE_STAGEPROFI)
