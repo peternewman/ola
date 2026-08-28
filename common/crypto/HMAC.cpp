@@ -33,11 +33,12 @@ bool HMACSHA256(const uint8_t *key,
                 const unsigned int data_length,
                 uint8_t *hmac,
                 unsigned int *hmac_length) {
-  HMAC_CTX ctx;
-  HMAC_Init(&ctx, key, key_length, EVP_sha256());
+  /*HMAC_CTX ctx;
+  HMAC_Init(&ctx, key, key_length, );
   HMAC_Update(&ctx, data, data_length);
   HMAC_Final(&ctx, hmac, hmac_length);
-  HMAC_cleanup(&ctx);
+  HMAC_cleanup(&ctx);*/
+  HMAC(EVP_sha256(), key, key_length, data, data_length, hmac, hmac_length);
 
   return true;
 }
