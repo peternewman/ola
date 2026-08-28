@@ -773,6 +773,13 @@ AS_IF([test "x$enable_signet" != xno],
 AS_IF([test "x$have_libcoap" = xyes],
       [AC_DEFINE([HAVE_LIBCOAP], [1], [define if libcoap is installed])])
 
+have_libcrypto="no"
+AS_IF([test "x$enable_signet" != xno],
+      [PKG_CHECK_MODULES(libcrypto, [libcrypto >= 1.0.2g], [have_libcrypto="yes"], [true])])
+AM_CONDITIONAL([HAVE_LIBCRYPTO], [test "x$have_libcrypto" = xyes])
+AS_IF([test "x$have_libcrypto" = xyes],
+      [AC_DEFINE([HAVE_LIBCRYPTO], [1], [define if libcrypto is installed])])
+
 # Python API
 AC_ARG_ENABLE(
   [python-libs],
