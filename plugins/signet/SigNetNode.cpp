@@ -23,9 +23,13 @@
 #endif  // _WIN32
 
 #include <ola/Callback.h>
+#include <ola/Clock.h>
 #include <ola/Constants.h>
 #include <ola/ExportMap.h>
 #include <ola/Logging.h>
+#include <ola/crypto/HMAC.h>
+#include <ola/io/BigEndianStream.h>
+#include <ola/io/IOQueue.h>
 #include <ola/network/InterfacePicker.h>
 #include <ola/network/NetworkUtils.h>
 #include <ola/rdm/UID.h>
@@ -78,6 +82,13 @@ using std::vector;
 const char SigNetNode::SIGNET_PORT_VARIABLE[] = "signet-listen-port";
 const vector<string> SigNetNode::SIGNET_LEVEL_URI({
     "sig-net", "v1", "local", "level"});
+
+const uint8_t SigNetNode::key[] = {
+    0x78, 0x98, 0x1f, 0xe0, 0x25, 0x76, 0xb2, 0xe9, 0xe4, 0x7d,
+    0x91, 0x68, 0x53, 0xd5, 0x96, 0x7f, 0x34, 0xf8, 0xae, 0x8a,
+    0xaa, 0xe4, 0x6d, 0xb0, 0x49, 0x5b, 0x17, 0x8a, 0x75, 0x62,
+    0x0e, 0x89
+};
 
 // TODO(Peter): Convert this into a SocketAddress?
 coap_context_t* SigNetNode::GetCoapContext(const IPV4Address ip,
@@ -151,7 +162,7 @@ void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
 
     node = reinterpret_cast<SigNetNode*>(attr->value.s);
     if (node) {
-          OLA_DEBUG << "Still listening on " << node->ListeningPort();
+      OLA_DEBUG << "Still listening on " << node->ListeningPort();
     }
   } else {
     OLA_DEBUG << "Didn't find our attr";
@@ -163,10 +174,10 @@ void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
   string uri_part;
   unsigned int uri_part_i = 0;
   uint16_t universe = 0;
-  int signet_security_mode = -1;
-  int signet_mfg_code = -1;
-  int signet_session_id = -1;
-  int signet_seq_num = -1;
+  uint8_t signet_security_mode = 0;
+  uint16_t signet_mfg_code = 0;
+  uint32_t signet_session_id = 0;
+  uint32_t signet_seq_num = 0;
   UID signet_sender_id_tuid(0, 0);
   uint16_t signet_sender_id_endpoint = 0;
   std::ostringstream format_data_str;
@@ -246,6 +257,24 @@ void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
 
   if (coap_get_data(request, &data_len, &data)) {
     OLA_DEBUG << "Raw Length: " << data_len;
+
+    unsigned int len;
+    unsigned char out[100];
+
+    node->GenerateHMAC(resource->uri.s, resource->uri.length,
+                       signet_security_mode, signet_sender_id_tuid,
+                       signet_sender_id_endpoint, signet_mfg_code,
+                       signet_session_id, signet_seq_num,
+                       data, data_len,
+                       SigNetNode::key, sizeof(SigNetNode::key),
+                       out, &len);
+
+    std::ostringstream format_be_hmac_str;
+    ola::strings::FormatData(&format_be_hmac_str, out, len);
+    OLA_INFO << "BE HMAC\n" << format_be_hmac_str.str();
+
+    // TODO(Peter): Actually check the generated HMAC matches!
+
     if (data_len >= 4) {
       uint16_t tid_data_type = JoinUInt8(data[0], data[1]);
       uint16_t tid_data_len = JoinUInt8(data[2], data[3]);
@@ -317,6 +346,65 @@ void SigNetErrorHandler(int error_code, const char *msg, const char *stack) {
   OLA_WARN << "Unknown SigNet message type " << type;
   return 0;
 }*/
+
+
+bool SigNetNode::PopulateHMACData(
+    const uint8_t *uri, const unsigned int uri_length,
+    const uint8_t security_mode,
+    const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+    const uint16_t mfg_code,
+    const uint32_t session_id, const uint32_t seq_num,
+    const uint8_t *payload, const unsigned int payload_length,
+    uint8_t *hmac_data, unsigned int *hmac_data_length) {
+  ola::io::IOQueue output_queue;
+  ola::io::BigEndianOutputStream output_stream(&output_queue);
+  output_queue.Clear();
+  output_stream << (uint8_t)'/';
+  output_stream.Write(uri, uri_length);
+  output_stream << security_mode
+                << sender_id_tuid.ManufacturerId()
+                << sender_id_tuid.DeviceId()
+                << sender_id_endpoint
+                << mfg_code
+                << session_id
+                  << seq_num;
+  output_stream.Write(payload, payload_length);
+
+  OLA_DEBUG << "BE size " << output_queue.Size();
+
+//  std::ostringstream format_be_data_dump_str;
+//  output_queue.Dump(&format_be_data_dump_str);
+//  OLA_INFO << "BE Data Dump\n" << format_be_data_dump_str.str();
+
+  *hmac_data_length = output_queue.Size();
+  output_queue.Peek(hmac_data, *hmac_data_length);
+
+  return true;
+}
+
+
+bool SigNetNode::GenerateHMAC(
+    const uint8_t *uri, const unsigned int uri_length,
+    const uint8_t security_mode,
+    const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+    const uint16_t mfg_code,
+    const uint32_t session_id, const uint32_t seq_num,
+    const uint8_t *payload, const unsigned int payload_length,
+    const uint8_t *key, const unsigned int key_length,
+    uint8_t *hmac, unsigned int *hmac_length) {
+  uint8_t out[1500];
+  unsigned int len = 0;
+  PopulateHMACData(uri, uri_length,
+                   security_mode, sender_id_tuid,
+                   sender_id_endpoint, mfg_code,
+                   session_id, seq_num,
+                   payload, payload_length,
+                   out, &len);
+
+  return ola::crypto::HMACSHA256(key, key_length,
+                                 out, len,
+                                 hmac, hmac_length);
+}
 
 
 /*
@@ -436,6 +524,11 @@ bool SigNetNode::Init() {
   m_descriptor->SetOnData(NewCallback(this, &SigNetNode::DescriptorReady));
   m_ss->AddReadDescriptor(m_descriptor.get());
 
+  // Test send data to uni 2
+  DmxBuffer buffer;
+  buffer.SetFromString("50,100,150,200,250");
+  SendData(2, buffer);
+
   return true;
 }
 
@@ -467,7 +560,7 @@ void SigNetNode::Stop() {
 }
 
 
-bool SigNetNode::SetHandler(uint16_t universe,
+bool SigNetNode::SetHandler(const uint16_t universe,
                             OLA_UNUSED DmxBuffer *buffer,
                             OLA_UNUSED uint8_t *priority,
                             DMXCallback *callback) {
@@ -555,11 +648,30 @@ bool SigNetNode::RemoveHandler(uint16_t universe) {
  * @param dmx_data the DmxBuffer to send
  * @returns true if successfully sent, false if any error occurred.
  */
-bool SigNetNode::SendData(unsigned int group,
+bool SigNetNode::SendData(const uint16_t universe,
                           OLA_UNUSED const ola::DmxBuffer &dmx_data) {
-  SigNetOutputGroup *output_group = STLFindOrNull(m_output_map, group);
+  // coap_startup();
+
+  Clock clock;
+  TimeStamp timestamp;
+  clock.CurrentMonotonicTime(&timestamp);
+
+/*  GenerateHMAC(resource->uri.s, resource->uri.length,
+               signet_security_mode, signet_sender_id_tuid,
+               signet_sender_id_endpoint, signet_mfg_code,
+               1, timestamp.Seconds(),
+               data, data_len,
+               SigNetNode::key, sizeof(SigNetNode::key),
+               out, &len);
+
+  std::ostringstream format_be_hmac_str;
+  ola::strings::FormatData(&format_be_hmac_str, out, len);
+  OLA_INFO << "BE HMAC\n" << format_be_hmac_str.str();*/
+
+
+  SigNetOutputGroup *output_group = STLFindOrNull(m_output_map, universe);
   if (!output_group) {
-    OLA_WARN << "failed to find " << group;
+    OLA_WARN << "failed to find universe " << universe;
     // group doesn't exist, just return
     return false;
   }

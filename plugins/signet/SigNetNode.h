@@ -33,6 +33,7 @@
 #include <ola/network/IPV4Address.h>
 #include <ola/network/Socket.h>
 #include <ola/network/SocketAddress.h>
+#include <ola/rdm/UID.h>
 #include <stdint.h>
 #include <map>
 #include <memory>
@@ -76,6 +77,27 @@ class SigNetNode {
 
   static const std::vector<std::string> SIGNET_LEVEL_URI;
 
+  static const uint8_t key[];
+
+  static bool PopulateHMACData(
+      const uint8_t *uri, const unsigned int uri_length,
+      const uint8_t security_mode,
+      const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+      const uint16_t mfg_code,
+      const uint32_t session_id, const uint32_t seq_num,
+      const uint8_t *payload, const unsigned int payload_length,
+      uint8_t *hmac_data, unsigned int *hmac_dat_length);
+
+  static bool GenerateHMAC(
+      const uint8_t *uri, const unsigned int uri_length,
+      const uint8_t security_mode,
+      const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+      const uint16_t mfg_code,
+      const uint32_t session_id, const uint32_t seq_num,
+      const uint8_t *payload, const unsigned int payload_length,
+      const uint8_t *key, const unsigned int key_length,
+      uint8_t *hmac, unsigned int *hmac_length);
+
   static bool UniverseIP(uint16_t universe,
                          class ola::network::IPV4Address *addr);
 
@@ -97,7 +119,7 @@ class SigNetNode {
    * @param handler the Callback to call when there is data for this universe.
    *   Ownership is transferred.
    */
-  bool SetHandler(uint16_t universe, ola::DmxBuffer *buffer,
+  bool SetHandler(const uint16_t universe, ola::DmxBuffer *buffer,
                   uint8_t *priority,
                   DMXCallback *callback);
 
@@ -109,11 +131,11 @@ class SigNetNode {
   bool RemoveHandler(uint16_t universe);
 
   // Sending methods
-  bool SendData(unsigned int group, const ola::DmxBuffer &data);
+  bool SendData(const uint16_t universe, const ola::DmxBuffer &data);
 
   // Called by the libcoap handlers.
-  void SetUniverse(uint16_t universe, const uint8_t *data,
-                   unsigned int size);
+  void SetUniverse(const uint16_t universe, const uint8_t *data,
+                   const unsigned int size);
 
   // The port SigNet is listening on.
   uint16_t ListeningPort() const;
