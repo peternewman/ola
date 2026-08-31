@@ -49,8 +49,18 @@ typedef enum {
   SIGNET_MFG_CODE = 2140, /**< Sig-Net-Mfg-Code */
   SIGNET_SESSION_ID = 2172, /**< Sig-Net-Session-ID */
   SIGNET_SEQ_NUM = 2204, /**< Sig-Net-Seq-Num */
-  SIGNET_AUTH = 2236, /**<  */
+  SIGNET_AUTH = 2236, /**< Sig-Net-Auth */
 } signet_coap_options;
+
+/**
+ * @brief A set of values representing Sig-Net-Security-Mode choices.
+ * @note See section 8.3 of Sig-Net for more information.
+ */
+typedef enum {
+  SIGNET_SECURITY_MODE_SHA256 = 0x00, /**< Plaintext with, HMAC-SHA256 */
+  SIGNET_SECURITY_MODE_OPEN = 0x01, /**< Open, unauthenticated packets */
+  SIGNET_SECURITY_MODE_OFFBOARDED = 0xFF, /**< Offboarded device */
+} signet_security_mode;
 /**
  * @}
  */

@@ -716,7 +716,7 @@ bool SigNetNode::SendCoapMessage(const std::string uri,
                                  const ola::network::IPV4Address dest,
                                  const uint8_t *payload,
                                  const unsigned int payload_length) {
-  uint8_t signet_security_mode = 0;
+  uint8_t signet_security_mode = SIGNET_SECURITY_MODE_SHA256;
   UID signet_sender_id_tuid = m_uid;
   uint16_t signet_sender_id_endpoint = 1;
   uint16_t signet_mfg_code = 0;
