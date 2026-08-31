@@ -23,7 +23,8 @@
 
 // Required for libcoap
 #define WITH_POSIX
-#include <coap/coap.h>
+// #include <coap/coap.h>
+#include <coap2/coap.h>
 #include <ola/DmxBuffer.h>
 #include <ola/ExportMap.h>
 #include <ola/base/Macro.h>
@@ -177,6 +178,7 @@ class SigNetNode {
   ola::SequenceNumber<uint32_t> m_seq_num;
   std::auto_ptr<ola::io::UnmanagedFileDescriptor> m_descriptor;
   coap_context_t *m_coap_context;
+  coap_session_t *m_coap_session;
   OutputGroupMap m_output_map;
   InputUniverseMap m_input_map;
 
