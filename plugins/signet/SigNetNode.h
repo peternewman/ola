@@ -34,6 +34,7 @@
 #include <ola/network/Socket.h>
 #include <ola/network/SocketAddress.h>
 #include <ola/rdm/UID.h>
+#include <ola/util/SequenceNumber.h>
 #include <stdint.h>
 #include <map>
 #include <memory>
@@ -104,8 +105,9 @@ class SigNetNode {
   static bool UniverseURI(uint16_t universe, std::string *uri);
 
   SigNetNode(ola::io::SelectServerInterface *ss,
-          ola::ExportMap *export_map,
-          const SigNetNodeOptions &options);
+             ola::ExportMap *export_map,
+             const ola::rdm::UID &uid,
+             const SigNetNodeOptions &options);
   ~SigNetNode();
 
   bool Init();
@@ -131,7 +133,7 @@ class SigNetNode {
   bool RemoveHandler(uint16_t universe);
 
   // Sending methods
-  bool SendData(const uint16_t universe, const ola::DmxBuffer &data);
+  bool SendDMX(const uint16_t universe, const ola::DmxBuffer &data);
 
   // Called by the libcoap handlers.
   void SetUniverse(const uint16_t universe, const uint8_t *data,
@@ -168,17 +170,21 @@ class SigNetNode {
   typedef std::map<unsigned int, SigNetInputGroup*> InputUniverseMap;
 
   ola::io::SelectServerInterface *m_ss;
+  ola::rdm::UID m_uid;
   const uint16_t m_listen_port;
   ola::network::Interface m_interface;
   ola::network::UDPSocket m_socket;
+  ola::SequenceNumber<uint32_t> m_seq_num;
   std::auto_ptr<ola::io::UnmanagedFileDescriptor> m_descriptor;
   coap_context_t *m_coap_context;
   OutputGroupMap m_output_map;
   InputUniverseMap m_input_map;
 
   void DescriptorReady();
-//  bool SendMessageToTargets(lo_message message,
-//                            const SigNetTargetVector &targets);
+  bool SendCoapMessage(const std::string uri,
+                       const ola::network::IPV4Address dest,
+                       const uint8_t *payload,
+                       const unsigned int payload_length);
 
 /*void SigNetUniverseHandler(coap_context_t *ctx,
               struct coap_resource_t *resource,

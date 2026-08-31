@@ -125,7 +125,10 @@ class SigNetOutputPort: public BasicOutputPort {
    */
   bool WriteDMX(const DmxBuffer &buffer, uint8_t) {
     // TODO(Peter): Handle priority
-    return m_node->SendData(this->PortId(), buffer);
+    if (GetUniverse()) {
+      return m_node->SendDMX(GetUniverse()->UniverseId(), buffer);
+    }
+    return true;
   }
 
  private:
