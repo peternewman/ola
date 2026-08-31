@@ -23,8 +23,8 @@
 /**
  * @addtogroup signet
  * @{
- * @file SigNetTIDs.h
- * @brief Sig-Net TID values.
+ * @file SigNetEnumss.h
+ * @brief Sig-Net enum values.
  * @}
  */
 
