@@ -35,8 +35,6 @@ class SigNetPortHelper {
  public:
   bool PreSetUniverse(Universe *old_universe, Universe *new_universe);
   std::string Description(Universe *universe) const;
- private:
-  static const unsigned int MAX_SIGNET_UNIVERSE = 63999;
 };
 
 

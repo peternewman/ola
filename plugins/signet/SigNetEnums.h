@@ -39,6 +39,12 @@ namespace signet {
  * @{
  */
 
+static const uint16_t SIGNET_ROOT_ENDPOINT = 0x0000;
+static const uint16_t SIGNET_BROADCAST_ENDPOINT = 0xFFFF;
+
+static const uint16_t SIGNET_MIN_UNIVERSE = 1;
+static const uint16_t SIGNET_MAX_UNIVERSE = 63999;
+
 /**
  * @brief A set of values representing Sig-Net COAP Options.
  * @note See section 8.3 of Sig-Net for more information.
@@ -61,6 +67,19 @@ typedef enum {
   SIGNET_SECURITY_MODE_OPEN = 0x01, /**< Open, unauthenticated packets */
   SIGNET_SECURITY_MODE_OFFBOARDED = 0xFF, /**< Offboarded device */
 } signet_security_mode;
+
+
+/**
+ * @brief A set of values representing Sig-Net query levels.
+ * @note See section 10.2.3 of Sig-Net for more information.
+ */
+typedef enum {
+  SIGNET_QUERY_HEARTBEAT = 0x00, /**< Heartbeat */
+  SIGNET_QUERY_CONFIG = 0x01, /**< Config */
+  SIGNET_QUERY_FULL = 0x02, /**< Full */
+  SIGNET_QUERY_EXTENDED = 0x03, /**< Extended */
+} signet_query_mode;
+
 /**
  * @}
  */
