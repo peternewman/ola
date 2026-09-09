@@ -84,7 +84,7 @@ jobs:
           apt-get -y install libcppunit-dev uuid-dev libncurses5-dev \
             libmicrohttpd-dev protobuf-compiler python3-protobuf \
             libprotobuf-dev libprotoc-dev zlib1g-dev libftdi-dev \
-            libusb-1.0-0-dev liblo-dev libcoap3-dev libssl-dev \
+            libusb-1.0-0-dev liblo-dev libcoap2-dev libssl-dev \
             libavahi-client-dev python3-numpy default-jdk-headless maven
       - name: Install compiler
         shell: bash
