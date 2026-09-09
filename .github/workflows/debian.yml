@@ -22,7 +22,7 @@ jobs:
         run: echo "NUM_CPU_CORES=$(grep -c processor /proc/cpuinfo)" >> $GITHUB_OUTPUT
         id: num-cpu-cores
       - name: Update package database
-        run: apt-get update -y
+        run: apt-get -o Acquire::Check-Valid-Until=false update -y
       # See comments beginning at
       # https://github.com/actions/runner/issues/763#issuecomment-1435474884
       # Without Git, actions/checkout@v4 will resort to REST and will not
