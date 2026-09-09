@@ -768,8 +768,10 @@ AC_ARG_ENABLE(
                   [Disable the Sig-Net plugin even if libcoap exists])])
 
 have_libcoap="no"
+#AS_IF([test "x$enable_signet" != xno],
+#      [PKG_CHECK_MODULES(libcoap, [libcoap-1 >= 4.1.2], [have_libcoap="yes"], [true])])
 AS_IF([test "x$enable_signet" != xno],
-      [PKG_CHECK_MODULES(libcoap, [libcoap-1 >= 4.1.2], [have_libcoap="yes"], [true])])
+      [PKG_CHECK_MODULES(libcoap, [libcoap-2 >= 4.2.1], [have_libcoap="yes"], [true])])
 AS_IF([test "x$have_libcoap" = xyes],
       [AC_DEFINE([HAVE_LIBCOAP], [1], [define if libcoap is installed])])
 

@@ -23,7 +23,8 @@
 
 // Required for libcoap
 #define WITH_POSIX
-#include <coap/coap.h>
+// #include <coap/coap.h>
+#include <coap2/coap.h>
 #include <ola/DmxBuffer.h>
 #include <ola/ExportMap.h>
 #include <ola/base/Macro.h>
@@ -33,6 +34,8 @@
 #include <ola/network/IPV4Address.h>
 #include <ola/network/Socket.h>
 #include <ola/network/SocketAddress.h>
+#include <ola/rdm/UID.h>
+#include <ola/util/SequenceNumber.h>
 #include <stdint.h>
 #include <map>
 #include <memory>
@@ -76,14 +79,36 @@ class SigNetNode {
 
   static const std::vector<std::string> SIGNET_LEVEL_URI;
 
+  static const uint8_t key[];
+
+  static bool PopulateHMACData(
+      const uint8_t *uri, const unsigned int uri_length,
+      const uint8_t security_mode,
+      const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+      const uint16_t mfg_code,
+      const uint32_t session_id, const uint32_t seq_num,
+      const uint8_t *payload, const unsigned int payload_length,
+      uint8_t *hmac_data, unsigned int *hmac_dat_length);
+
+  static bool GenerateHMAC(
+      const uint8_t *uri, const unsigned int uri_length,
+      const uint8_t security_mode,
+      const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+      const uint16_t mfg_code,
+      const uint32_t session_id, const uint32_t seq_num,
+      const uint8_t *payload, const unsigned int payload_length,
+      const uint8_t *key, const unsigned int key_length,
+      uint8_t *hmac, unsigned int *hmac_length);
+
   static bool UniverseIP(uint16_t universe,
                          class ola::network::IPV4Address *addr);
 
   static bool UniverseURI(uint16_t universe, std::string *uri);
 
   SigNetNode(ola::io::SelectServerInterface *ss,
-          ola::ExportMap *export_map,
-          const SigNetNodeOptions &options);
+             ola::ExportMap *export_map,
+             const ola::rdm::UID &uid,
+             const SigNetNodeOptions &options);
   ~SigNetNode();
 
   bool Init();
@@ -97,7 +122,7 @@ class SigNetNode {
    * @param handler the Callback to call when there is data for this universe.
    *   Ownership is transferred.
    */
-  bool SetHandler(uint16_t universe, ola::DmxBuffer *buffer,
+  bool SetHandler(const uint16_t universe, ola::DmxBuffer *buffer,
                   uint8_t *priority,
                   DMXCallback *callback);
 
@@ -109,11 +134,11 @@ class SigNetNode {
   bool RemoveHandler(uint16_t universe);
 
   // Sending methods
-  bool SendData(unsigned int group, const ola::DmxBuffer &data);
+  bool SendDMX(const uint16_t universe, const ola::DmxBuffer &data);
 
   // Called by the libcoap handlers.
-  void SetUniverse(uint16_t universe, const uint8_t *data,
-                   unsigned int size);
+  void SetUniverse(const uint16_t universe, const uint8_t *data,
+                   const unsigned int size);
 
   // The port SigNet is listening on.
   uint16_t ListeningPort() const;
@@ -146,17 +171,22 @@ class SigNetNode {
   typedef std::map<unsigned int, SigNetInputGroup*> InputUniverseMap;
 
   ola::io::SelectServerInterface *m_ss;
+  ola::rdm::UID m_uid;
   const uint16_t m_listen_port;
   ola::network::Interface m_interface;
   ola::network::UDPSocket m_socket;
+  ola::SequenceNumber<uint32_t> m_seq_num;
   std::auto_ptr<ola::io::UnmanagedFileDescriptor> m_descriptor;
   coap_context_t *m_coap_context;
+  coap_session_t *m_coap_session;
   OutputGroupMap m_output_map;
   InputUniverseMap m_input_map;
 
   void DescriptorReady();
-//  bool SendMessageToTargets(lo_message message,
-//                            const SigNetTargetVector &targets);
+  bool SendCoapMessage(const std::string uri,
+                       const ola::network::IPV4Address dest,
+                       const uint8_t *payload,
+                       const unsigned int payload_length);
 
 /*void SigNetUniverseHandler(coap_context_t *ctx,
               struct coap_resource_t *resource,

@@ -26,6 +26,9 @@
 #include <ola/Constants.h>
 #include <ola/ExportMap.h>
 #include <ola/Logging.h>
+#include <ola/crypto/HMAC.h>
+#include <ola/io/BigEndianStream.h>
+#include <ola/io/IOQueue.h>
 #include <ola/network/InterfacePicker.h>
 #include <ola/network/NetworkUtils.h>
 #include <ola/rdm/UID.h>
@@ -68,6 +71,8 @@ using ola::network::NetworkToHost;
 using ola::rdm::UID;
 using ola::strings::IntToString;
 using ola::utils::JoinUInt8;
+using ola::utils::SplitUInt16;
+using ola::SequenceNumber;
 using std::auto_ptr;
 using std::make_pair;
 using std::max;
@@ -78,6 +83,13 @@ using std::vector;
 const char SigNetNode::SIGNET_PORT_VARIABLE[] = "signet-listen-port";
 const vector<string> SigNetNode::SIGNET_LEVEL_URI({
     "sig-net", "v1", "local", "level"});
+
+const uint8_t SigNetNode::key[] = {
+    0x78, 0x98, 0x1f, 0xe0, 0x25, 0x76, 0xb2, 0xe9, 0xe4, 0x7d,
+    0x91, 0x68, 0x53, 0xd5, 0x96, 0x7f, 0x34, 0xf8, 0xae, 0x8a,
+    0xaa, 0xe4, 0x6d, 0xb0, 0x49, 0x5b, 0x17, 0x8a, 0x75, 0x62,
+    0x0e, 0x89
+};
 
 // TODO(Peter): Convert this into a SocketAddress?
 coap_context_t* SigNetNode::GetCoapContext(const IPV4Address ip,
@@ -122,40 +134,52 @@ coap_context_t* SigNetNode::GetCoapContext(const IPV4Address ip,
   return ctx;
 }
 
-void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
-                           struct coap_resource_t *resource,
-                           OLA_UNUSED const coap_endpoint_t *local_interface,
-                           OLA_UNUSED coap_address_t *peer,
-                           coap_pdu_t *request,
-                           OLA_UNUSED str *token,
-                           OLA_UNUSED coap_pdu_t *response) {
-  string uri = string(reinterpret_cast<char*>(resource->uri.s),
-                      resource->uri.length);
+static void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
+                                  coap_resource_t *resource,
+//                              OLA_UNUSED const coap_endpoint_t *local_interface,
+                                  OLA_UNUSED const coap_session_t *session,
+//                              OLA_UNUSED coap_address_t *peer,
+                                  coap_pdu_t *request,
+//                              OLA_UNUSED str *token,
+                                  OLA_UNUSED coap_binary_t *token,
+                                  OLA_UNUSED coap_string_t *query_string,
+                                  OLA_UNUSED coap_pdu_t *response) {
+//  string uri = string(reinterpret_cast<char*>(resource->uri.s),
+//                      resource->uri.length);
+  coap_str_const_t *uri_str = coap_resource_get_uri_path(resource);
+  string uri = string(reinterpret_cast<const char*>(uri_str->s),
+                      uri_str->length);
   OLA_INFO << "POST Called! " << uri;
 
   SigNetNode *node = NULL;
 
-  string *rname = new string("ola-sig-net-node-ptr");
+//  string *rname = new string("ola-sig-net-node-ptr");
 
-  coap_attr_t *attr;
-  attr = coap_find_attr(resource,
-                        (unsigned char *)rname->c_str(),
-                        rname->length());
+//  coap_attr_t *attr;
+//  attr = coap_find_attr(resource,
+//                        (unsigned char *)rname->c_str(),
+//                        rname->length());
+//  coap_str_const_t *rname_str;
+//  rname_str = coap_new_str_const((unsigned char *)rname->c_str(), rname->length());
+//  attr = coap_find_attr(resource, rname_str);
 
-  if (attr) {
-    OLA_DEBUG << "Found our attr";
+//  if (attr) {
+//    OLA_DEBUG << "Found our attr";
 
-    string val = string(reinterpret_cast<char*>(attr->value.s),
-                        attr->value.length);
-    OLA_INFO << "Attr val: " << val;
+//    string val = string(reinterpret_cast<char*>(attr->value.s),
+//                        attr->value.length);
+//    string val = string(reinterpret_cast<const char*>(attr->value->s),
+//                        attr->value->length);
+//    OLA_INFO << "Attr val: " << val;
 
-    node = reinterpret_cast<SigNetNode*>(attr->value.s);
+//    node = reinterpret_cast<SigNetNode*>(attr->value.s);
+    node = reinterpret_cast<SigNetNode*>(coap_resource_get_userdata(resource));
     if (node) {
-          OLA_DEBUG << "Still listening on " << node->ListeningPort();
+      OLA_DEBUG << "Still listening on " << node->ListeningPort();
     }
-  } else {
-    OLA_DEBUG << "Didn't find our attr";
-  }
+//  } else {
+//    OLA_DEBUG << "Didn't find our attr";
+//  }
 
   coap_opt_iterator_t opt_iter;
   coap_opt_t *option;
@@ -163,10 +187,10 @@ void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
   string uri_part;
   unsigned int uri_part_i = 0;
   uint16_t universe = 0;
-  int signet_security_mode = -1;
-  int signet_mfg_code = -1;
-  int signet_session_id = -1;
-  int signet_seq_num = -1;
+  uint8_t signet_security_mode = 0;
+  uint16_t signet_mfg_code = 0;
+  uint32_t signet_session_id = 0;
+  uint32_t signet_seq_num = 0;
   UID signet_sender_id_tuid(0, 0);
   uint16_t signet_sender_id_endpoint = 0;
   std::ostringstream format_data_str;
@@ -176,7 +200,9 @@ void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
   while ((option = coap_option_next(&opt_iter))) {
     switch (opt_iter.type) {
       case COAP_OPTION_URI_PATH:
-        uri_part = string(reinterpret_cast<char*>(coap_opt_value(option)),
+//        uri_part = string(reinterpret_cast<char*>(coap_opt_value(option)),
+//                          coap_opt_length(option));
+        uri_part = string(reinterpret_cast<const char*>(coap_opt_value(option)),
                           coap_opt_length(option));
         if (uri_part_i < SigNetNode::SIGNET_LEVEL_URI.size()) {
           OLA_INFO << "Got COAP URI part " << uri_part << " expected "
@@ -246,6 +272,25 @@ void SigNetUniverseHandler(OLA_UNUSED coap_context_t *ctx,
 
   if (coap_get_data(request, &data_len, &data)) {
     OLA_DEBUG << "Raw Length: " << data_len;
+
+    unsigned int len;
+    unsigned char out[100];
+
+    coap_str_const_t *uri_str = coap_resource_get_uri_path(resource);
+    node->GenerateHMAC(uri_str->s, uri_str->length,
+                       signet_security_mode, signet_sender_id_tuid,
+                       signet_sender_id_endpoint, signet_mfg_code,
+                       signet_session_id, signet_seq_num,
+                       data, data_len,
+                       SigNetNode::key, sizeof(SigNetNode::key),
+                       out, &len);
+
+    std::ostringstream format_be_hmac_str;
+    ola::strings::FormatData(&format_be_hmac_str, out, len);
+    OLA_INFO << "BE HMAC\n" << format_be_hmac_str.str();
+
+    // TODO(Peter): Actually check the generated HMAC matches!
+
     if (data_len >= 4) {
       uint16_t tid_data_type = JoinUInt8(data[0], data[1]);
       uint16_t tid_data_len = JoinUInt8(data[2], data[3]);
@@ -319,6 +364,65 @@ void SigNetErrorHandler(int error_code, const char *msg, const char *stack) {
 }*/
 
 
+bool SigNetNode::PopulateHMACData(
+    const uint8_t *uri, const unsigned int uri_length,
+    const uint8_t security_mode,
+    const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+    const uint16_t mfg_code,
+    const uint32_t session_id, const uint32_t seq_num,
+    const uint8_t *payload, const unsigned int payload_length,
+    uint8_t *hmac_data, unsigned int *hmac_data_length) {
+  ola::io::IOQueue output_queue;
+  ola::io::BigEndianOutputStream output_stream(&output_queue);
+  output_queue.Clear();
+  output_stream << (uint8_t)'/';
+  output_stream.Write(uri, uri_length);
+  output_stream << security_mode
+                << sender_id_tuid.ManufacturerId()
+                << sender_id_tuid.DeviceId()
+                << sender_id_endpoint
+                << mfg_code
+                << session_id
+                  << seq_num;
+  output_stream.Write(payload, payload_length);
+
+  OLA_DEBUG << "BE size " << output_queue.Size();
+
+//  std::ostringstream format_be_data_dump_str;
+//  output_queue.Dump(&format_be_data_dump_str);
+//  OLA_INFO << "BE Data Dump\n" << format_be_data_dump_str.str();
+
+  *hmac_data_length = output_queue.Size();
+  output_queue.Peek(hmac_data, *hmac_data_length);
+
+  return true;
+}
+
+
+bool SigNetNode::GenerateHMAC(
+    const uint8_t *uri, const unsigned int uri_length,
+    const uint8_t security_mode,
+    const ola::rdm::UID sender_id_tuid, const uint16_t sender_id_endpoint,
+    const uint16_t mfg_code,
+    const uint32_t session_id, const uint32_t seq_num,
+    const uint8_t *payload, const unsigned int payload_length,
+    const uint8_t *key, const unsigned int key_length,
+    uint8_t *hmac, unsigned int *hmac_length) {
+  uint8_t out[1500];
+  unsigned int len = 0;
+  PopulateHMACData(uri, uri_length,
+                   security_mode, sender_id_tuid,
+                   sender_id_endpoint, mfg_code,
+                   session_id, seq_num,
+                   payload, payload_length,
+                   out, &len);
+
+  return ola::crypto::HMACSHA256(key, key_length,
+                                 out, len,
+                                 hmac, hmac_length);
+}
+
+
 /*
  * Calculate the IP that corresponds to a universe.
  * @param universe the universe id
@@ -362,9 +466,11 @@ bool SigNetNode::UniverseURI(uint16_t universe, string *uri) {
  * @param options the SigNetNodeOptions
  */
 SigNetNode::SigNetNode(SelectServerInterface *ss,
-                 ExportMap *export_map,
-                 const SigNetNodeOptions &options)
+                       ExportMap *export_map,
+                       const UID &uid,
+                       const SigNetNodeOptions &options)
     : m_ss(ss),
+      m_uid(uid),
       m_listen_port(options.listen_port) {
   if (export_map) {
     // export the SigNet listening port if we have an export map
@@ -415,6 +521,8 @@ bool SigNetNode::Init() {
 //  m_socket.SetOnData(NewCallback(&m_incoming_udp_transport,
 //                                 &IncomingUDPTransport::Receive));
 
+  coap_startup();
+
   coap_set_log_level(LOG_DEBUG);
 
   m_coap_context = SigNetNode::GetCoapContext(IPV4Address::WildCard(),
@@ -427,7 +535,11 @@ bool SigNetNode::Init() {
   // Get the socket descriptor that libcoap is using, create a
   // UnmanagedFileDescriptor, assign a callback and register with the
   // SelectServer.
-  int fd = m_coap_context->sockfd;
+//  int fd = m_coap_context->sockfd;
+  int fd = coap_context_get_coap_fd(m_coap_context);
+  if (fd != -1) {
+    // if coap_fd is -1, then epoll is not supported within libcoap
+  }
 #ifdef _WIN32
   m_descriptor.reset(new UnmanagedSocketDescriptor(fd));
 #else
@@ -435,6 +547,20 @@ bool SigNetNode::Init() {
 #endif  // _WIN32
   m_descriptor->SetOnData(NewCallback(this, &SigNetNode::DescriptorReady));
   m_ss->AddReadDescriptor(m_descriptor.get());
+
+  IPV4Address node_beacon = IPV4Address(HostToNetwork(ola::utils::JoinUInt8(239, 254, 255, 255)));
+  OLA_DEBUG << "Joining via handler " << node_beacon;
+  if (!m_socket.JoinMulticast(m_interface.ip_address, node_beacon)) {
+    OLA_WARN << "Failed to join multicast group " << node_beacon;
+    return false;
+  }
+
+  IPV4Address node_lost = IPV4Address(HostToNetwork(ola::utils::JoinUInt8(239, 254, 255, 254)));
+  OLA_DEBUG << "Joining via handler " << node_lost;
+  if (!m_socket.JoinMulticast(m_interface.ip_address, node_lost)) {
+    OLA_WARN << "Failed to join multicast group " << node_lost;
+    return false;
+  }
 
   return true;
 }
@@ -467,7 +593,7 @@ void SigNetNode::Stop() {
 }
 
 
-bool SigNetNode::SetHandler(uint16_t universe,
+bool SigNetNode::SetHandler(const uint16_t universe,
                             OLA_UNUSED DmxBuffer *buffer,
                             OLA_UNUSED uint8_t *priority,
                             DMXCallback *callback) {
@@ -491,10 +617,14 @@ bool SigNetNode::SetHandler(uint16_t universe,
 
 //  OLA_DEBUG << "Universe URI: " << *uri1;
 
-  r = coap_resource_init((unsigned char *)uri1->c_str(), uri1->length(),
-                         COAP_RESOURCE_FLAGS_NOTIFY_NON);
+  coap_str_const_t *uri;
+  uri = coap_new_str_const((unsigned char *)uri1->c_str(), uri1->length());
 
-  string *rname = new string("ola-sig-net-node-ptr");
+//  r = coap_resource_init((unsigned char *)uri1->c_str(), uri1->length(),
+//                         COAP_RESOURCE_FLAGS_NOTIFY_NON);
+  r = coap_resource_init(uri, COAP_RESOURCE_FLAGS_NOTIFY_NON);
+
+/*  string *rname = new string("ola-sig-net-node-ptr");
 
   string val = string(reinterpret_cast<char*>(this), 4);
   OLA_INFO << "Orig Attr val: " << val;
@@ -504,9 +634,11 @@ bool SigNetNode::SetHandler(uint16_t universe,
                 rname->length(),
                 (unsigned char *)this,
                 4,
-                0);
+                0);*/
 
-  coap_register_handler(r, COAP_REQUEST_POST, SigNetUniverseHandler);
+  coap_resource_set_userdata(r, this);
+
+  coap_register_handler(r, COAP_REQUEST_POST, (coap_method_handler_t)SigNetUniverseHandler);
 
   coap_add_resource(m_coap_context, r);
 
@@ -555,17 +687,33 @@ bool SigNetNode::RemoveHandler(uint16_t universe) {
  * @param dmx_data the DmxBuffer to send
  * @returns true if successfully sent, false if any error occurred.
  */
-bool SigNetNode::SendData(unsigned int group,
-                          OLA_UNUSED const ola::DmxBuffer &dmx_data) {
-  SigNetOutputGroup *output_group = STLFindOrNull(m_output_map, group);
-  if (!output_group) {
-    OLA_WARN << "failed to find " << group;
-    // group doesn't exist, just return
+bool SigNetNode::SendDMX(const uint16_t universe,
+                         const ola::DmxBuffer &dmx_data) {
+  string *uri = new string();
+  UniverseURI(universe, uri);
+
+  IPV4Address addr;
+  if (!UniverseIP(universe, &addr)) {
+    OLA_WARN << "Unable to determine multicast group for universe "
+             << universe;
     return false;
   }
 
-  // TODO(Peter): Fixme!
-  return true;
+  uint16_t payload_length = 0;
+  uint8_t payload[(512+4)];
+
+  unsigned int dmx_data_length = dmx_data.Size();
+  OLA_DEBUG << "Got DMX size: " << dmx_data_length
+            << " got payload size " << sizeof(payload);
+  dmx_data.Get(&payload[4], &dmx_data_length);
+  payload_length = 4 + dmx_data_length;
+
+  SplitUInt16(HostToNetwork((uint16_t)TID_LEVEL), &payload[0], &payload[1]);
+  SplitUInt16(dmx_data_length, &payload[2], &payload[3]);
+
+  OLA_DEBUG << "Sending CoAP data to universe " << universe;
+
+  return SendCoapMessage(*uri, addr, payload, payload_length);
 }
 
 
@@ -601,29 +749,140 @@ uint16_t SigNetNode::ListeningPort() const {
  */
 void SigNetNode::DescriptorReady() {
   // Call into libcoap to read the received data
-  coap_read(m_coap_context);
+//  coap_read(m_coap_context);
+  coap_run_once(m_coap_context, COAP_RUN_NONBLOCK);
 }
 
 
-/**
- * Send an lo_message to each target in a set.
- * @param message the lo_message to send.
- * @param targets the list of targets to send the message to.
- */
-/*bool SigNetNode::SendMessageToTargets(lo_message message,
-                                   const SigNetTargetVector &targets) {
-  bool ok = true;
-  SigNetTargetVector::const_iterator target_iter = targets.begin();
-  for (; target_iter != targets.end(); ++target_iter) {
-    int ret = lo_send_message_from(
-        (*target_iter)->liblo_address,
-        m_signet_server,
-        (*target_iter)->signet_address.c_str(),
-        message);
-    ok &= (ret > 0);
+bool SigNetNode::SendCoapMessage(const std::string uri,
+                                 const ola::network::IPV4Address dest,
+                                 const uint8_t *payload,
+                                 const unsigned int payload_length) {
+  uint8_t signet_security_mode = SIGNET_SECURITY_MODE_SHA256;
+  UID signet_sender_id_tuid = m_uid;
+  uint16_t signet_sender_id_endpoint = 1;
+  uint16_t signet_mfg_code = 0;
+  uint32_t signet_session_id = 1;
+  uint32_t signet_seq_num = m_seq_num.Next();
+
+  uint8_t signet_security_mode_be = HostToNetwork(signet_security_mode);
+  uint8_t signet_sender_id_be[UID::LENGTH + sizeof(signet_sender_id_endpoint)];
+  signet_sender_id_tuid.Pack(&signet_sender_id_be[0],
+                             sizeof(signet_sender_id_be));
+  SplitUInt16(signet_sender_id_endpoint,
+              &signet_sender_id_be[UID::LENGTH],
+              &signet_sender_id_be[UID::LENGTH + 1]);
+
+  uint16_t signet_mfg_code_be = HostToNetwork(signet_mfg_code);
+  uint32_t signet_session_id_be = HostToNetwork(signet_session_id);
+  uint32_t signet_seq_num_be = HostToNetwork(signet_seq_num);
+
+  uint8_t hmac[100];
+  unsigned int hmac_length;
+
+  GenerateHMAC(reinterpret_cast<const uint8_t*>(uri.c_str()), uri.length(),
+               signet_security_mode, signet_sender_id_tuid,
+               signet_sender_id_endpoint, signet_mfg_code,
+               signet_session_id, signet_seq_num,
+               payload, payload_length,
+               SigNetNode::key, sizeof(SigNetNode::key),
+               hmac, &hmac_length);
+
+  std::ostringstream format_be_hmac_str;
+  ola::strings::FormatData(&format_be_hmac_str, hmac, hmac_length);
+  OLA_INFO << "BE HMAC\n" << format_be_hmac_str.str();
+
+  coap_address_t dst;
+  coap_pdu_t *pdu;
+
+//  if (LOG_DEBUG <= coap_get_log_level()) {
+//    debug("sending CoAP request:\n");
+//    coap_show_pdu(pdu);
+//  }
+
+  struct addrinfo hints;
+  struct addrinfo *result, *rp;
+
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_INET;  // Allow IPv4
+  hints.ai_socktype = SOCK_DGRAM;  // Coap is UDP based
+
+  int status = getaddrinfo(dest.ToString().c_str(),
+                           IntToString(m_listen_port).c_str(),
+                           &hints, &result);
+  if ( status != 0 ) {
+    OLA_WARN << "Failed to getaddrinfo: " << gai_strerror(status);
+    return false;
   }
-  return ok;
-}*/
+
+  // Loop through the results until we've found a suitable address
+  for (rp = result; rp != NULL; rp = rp->ai_next) {
+    coap_address_t addr;
+
+    if (rp->ai_addrlen <= sizeof(dst.addr)) {
+      coap_address_init(&addr);
+      dst.size = rp->ai_addrlen;
+      memcpy(&dst.addr, rp->ai_addr, rp->ai_addrlen);
+      break;
+    }
+  }
+
+  dst.addr.sin.sin_port = HostToNetwork(m_listen_port);
+
+//  if (!(pdu = coap_pdu_init(COAP_MESSAGE_NON, COAP_REQUEST_POST,
+//                            coap_new_message_id(m_coap_context,),
+//                            COAP_MAX_PDU_SIZE))) {
+//                            COAP_DEFAULT_MAX_PDU_RX_SIZE))) {
+
+  coap_session_t *coap_session = coap_new_client_session(m_coap_context, NULL, &dst, COAP_PROTO_UDP);
+
+  if (!(pdu = coap_pdu_init(COAP_MESSAGE_NON, COAP_REQUEST_POST,
+                            coap_new_message_id(coap_session),
+                            COAP_DEFAULT_MAX_PDU_RX_SIZE))) {
+    return false;
+  }
+
+#define BUFSIZE 40
+  unsigned char _buf[BUFSIZE];
+  unsigned char *buf = _buf;
+  size_t buflen;
+  int res;
+
+  if (uri.length()) {
+    buflen = BUFSIZE;
+    res = coap_split_path((unsigned char *)uri.c_str(), uri.length(),
+                          buf, &buflen);
+
+    while (res--) {
+      coap_add_option(pdu, COAP_OPTION_URI_PATH,
+                      coap_opt_length(buf),
+                      coap_opt_value(buf));
+
+      buf += coap_opt_size(buf);
+    }
+  }
+
+  coap_add_option(pdu, SIGNET_SECURITY_MODE, sizeof(signet_security_mode_be),
+                  reinterpret_cast<uint8_t*>(&signet_security_mode_be));
+  coap_add_option(pdu, SIGNET_SENDER_ID, sizeof(signet_sender_id_be),
+                  reinterpret_cast<uint8_t*>(&signet_sender_id_be));
+  coap_add_option(pdu, SIGNET_MFG_CODE, sizeof(signet_mfg_code_be),
+                  reinterpret_cast<uint8_t*>(&signet_mfg_code_be));
+  coap_add_option(pdu, SIGNET_SESSION_ID, sizeof(signet_session_id_be),
+                  reinterpret_cast<uint8_t*>(&signet_session_id_be));
+  coap_add_option(pdu, SIGNET_SEQ_NUM, sizeof(signet_seq_num_be),
+                  reinterpret_cast<uint8_t*>(&signet_seq_num_be));
+  coap_add_option(pdu, SIGNET_AUTH, hmac_length, hmac);
+
+  coap_add_data(pdu, payload_length, payload);
+
+  coap_send(coap_session, pdu);
+
+  // TODO(Peter): Fixme so this doesn't seg-fault on libcoap2
+//  coap_delete_pdu(pdu);
+
+  return true;
+}
 }  // namespace signet
 }  // namespace plugin
 }  // namespace ola

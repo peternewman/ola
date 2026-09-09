@@ -35,8 +35,6 @@ class SigNetPortHelper {
  public:
   bool PreSetUniverse(Universe *old_universe, Universe *new_universe);
   std::string Description(Universe *universe) const;
- private:
-  static const unsigned int MAX_SIGNET_UNIVERSE = 63999;
 };
 
 
@@ -125,7 +123,10 @@ class SigNetOutputPort: public BasicOutputPort {
    */
   bool WriteDMX(const DmxBuffer &buffer, uint8_t) {
     // TODO(Peter): Handle priority
-    return m_node->SendData(this->PortId(), buffer);
+    if (GetUniverse()) {
+      return m_node->SendDMX(GetUniverse()->UniverseId(), buffer);
+    }
+    return true;
   }
 
  private:

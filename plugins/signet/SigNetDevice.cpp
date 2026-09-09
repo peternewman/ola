@@ -51,6 +51,7 @@ SigNetDevice::SigNetDevice(AbstractPlugin *owner,
   // allocate a new SigNetNode but delay the call to Init() until later
   m_signet_node.reset(new SigNetNode(plugin_adaptor,
                                      plugin_adaptor->GetExportMap(),
+                                     plugin_adaptor->DefaultUID(),
                                      node_options));
 }
 

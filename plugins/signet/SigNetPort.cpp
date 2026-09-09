@@ -24,6 +24,7 @@
 #include "ola/Logging.h"
 #include "olad/Port.h"
 #include "plugins/signet/SigNetDevice.h"
+#include "plugins/signet/SigNetEnums.h"
 #include "plugins/signet/SigNetNode.h"
 #include "plugins/signet/SigNetPort.h"
 
@@ -37,10 +38,11 @@ using std::vector;
 
 bool SigNetPortHelper::PreSetUniverse(Universe *old_universe,
                                       Universe *new_universe) {
-  if (new_universe && (new_universe->UniverseId() == 0 ||
-                       new_universe->UniverseId() > MAX_SIGNET_UNIVERSE)) {
-    OLA_WARN << "Universe id " << new_universe->UniverseId() << " is 0 or > "
-      << MAX_SIGNET_UNIVERSE;
+  if (new_universe && ((new_universe->UniverseId() < SIGNET_MIN_UNIVERSE) ||
+                       (new_universe->UniverseId() > SIGNET_MAX_UNIVERSE))) {
+    OLA_WARN << "Universe id " << new_universe->UniverseId()
+             << " is < " << SIGNET_MIN_UNIVERSE
+             << " or > " << SIGNET_MAX_UNIVERSE;
     return false;
   }
   (void) old_universe;
