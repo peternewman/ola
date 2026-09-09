@@ -21,8 +21,14 @@ jobs:
       - name: Get number of CPU cores
         run: echo "NUM_CPU_CORES=$(grep -c processor /proc/cpuinfo)" >> $GITHUB_OUTPUT
         id: num-cpu-cores
+      - name: Sources pre
+        run: cat /etc/apt/sources.list
+      - name: remove bullseye-security
+        run: sudo sed -i '/bullseye-security/d' /etc/apt/sources.list
+      - name: Sources post
+        run: cat /etc/apt/sources.list
       - name: Update package database
-        run: apt-get -o Acquire::Check-Valid-Until=false update -y
+        run: apt-get update -y
       # See comments beginning at
       # https://github.com/actions/runner/issues/763#issuecomment-1435474884
       # Without Git, actions/checkout@v4 will resort to REST and will not
