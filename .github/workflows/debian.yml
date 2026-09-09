@@ -24,7 +24,7 @@ jobs:
       - name: Sources pre
         run: cat /etc/apt/sources.list
       - name: remove bullseye-security
-        run: sudo sed -i '/bullseye-security/d' /etc/apt/sources.list
+        run: sed -i '/bullseye-security/d' /etc/apt/sources.list
       - name: Sources post
         run: cat /etc/apt/sources.list
       - name: Update package database
