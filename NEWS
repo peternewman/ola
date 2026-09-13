@@ -80,11 +80,14 @@ x/y/2026 ola-0.11.0
 #1512
 #1520
 #1522 - Towards #1396
-#1525
-#1532
-#1535
-#1556
-#1561
+* Bump our POM minimum Java requirements
+* Prettify the version option in the auto-generated flags man pages
+* Switch more tests to OLA_ASSERT_EQ for better reporting on failures
+* Ensure int descriptors are within the valid ranges and/or labels
+* Deprecate a duplicate RDM Start Code constant, use ola::rdm::START_CODE from now on
+* Fix a bug in the responder tests that happens in some scenarios with queued messages
+* Add support for the Eurolite USB-DMX512 PRO MK2, disabled by default due to clashes with various other FTDI based interfaces
+* Fix GetDimmerMaximumLevel in the RDMAPI only processing one of the two bytes of the value
 #1608 - #1592
 #1620
 #1621
