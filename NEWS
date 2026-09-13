@@ -67,11 +67,12 @@ x/y/2026 ola-0.11.0
 #1389
  * Renamed StatusMessageIdToString to StatusCodeToString in the
    E1.33 E133StatusHelper code to avoid ambiguity
-#1405
-#1410
-#1415
- * Fix some minor typos
- 
+* Rename ArtNet, Artnet, artnet, Art-net to Art-Net #1328
+* Add support for the Digital Enlightenment USB-DMX interface #241
+* Add support for the FX5 DMX interface #241
+* Avoid the use of the root logger in the Python API
+* Fix closed socket detection in python3
+* Fix some minor typos 
 #1450
 #1457
 #1467
@@ -124,10 +125,10 @@ x/y/2026 ola-0.11.0
 #1932
 #1953
 #1976
-Add support for DMXControl Projects e.V. Nodle R4S interfaces
+* Add support for DMXControl Projects e.V. Nodle R4S interfaces
 * Check if an interface is listed multiple times in the RDM test for LIST_INTERFACES
 * Fix the build for macOS where endian.h is not available
- * Fix some minor typos
+* Fix some minor typos
 * Fix formatting of PID values in errors in RDM responder tests
 * Update ESTA PIDs and data to cover E1.20-2025
 * Add ESTA PIDs and data for E1.37-5
@@ -140,10 +141,10 @@ Add support for DMXControl Projects e.V. Nodle R4S interfaces
 * Fix a bunch of minor typos
 * Modify compiler flags to suppress variable length array error
 * Update manufacturer name data to cover latest from ESTA allocations
-
 * Collect the new E1.37-5 URLs and metadata via the RDM model collector
 * Add support for a lot of the E1.37-5 PIDs to the RDM dummy responders
 * Add additional acronyms to customise capitalization behaviour on
+
 Pychecker stuff
 E1.33 - cherry picks
 
