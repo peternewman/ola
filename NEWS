@@ -1,7 +1,7 @@
 x/y/2026 ola-0.11.0
  Uncategorised and unsummarised PRs:
 #1000
-#1008
+* Add Favicons and manifest files to the new web UI
 #1014
 #1015
 #1035
@@ -31,7 +31,7 @@ x/y/2026 ola-0.11.0
 #1260
 #1268
 #1269
-#1270
+* Add an ola_trigger config to control relays using crelay
 #1273
 #1275
 #1277
@@ -52,7 +52,7 @@ x/y/2026 ola-0.11.0
 #1312
 #1314
 #1319
-#1326
+ * Add a new specific OLA_ASSERT_DMX_EQUALS test
 #1329
 #1336
 #1342
@@ -65,11 +65,13 @@ x/y/2026 ola-0.11.0
 #1369
 #1380
 #1389
-#1391
+ * Renamed StatusMessageIdToString to StatusCodeToString in the
+   E1.33 E133StatusHelper code to avoid ambiguity
 #1405
 #1410
 #1415
-#1417
+ * Fix some minor typos
+ 
 #1450
 #1457
 #1467
@@ -119,20 +121,22 @@ x/y/2026 ola-0.11.0
 #1932
 #1953
 #1976
-#1978
-#1981
-#1983
-#1986
-#1996
-#1999
-#2004
-#2014
-#2032
-#2041
+Add support for DMXControl Projects e.V. Nodle R4S interfaces
+* Check if an interface is listed multiple times in the RDM test for LIST_INTERFACES
+* Fix the build for macOS where endian.h is not available
+ * Fix some minor typos
+* Fix formatting of PID values in errors in RDM responder tests
+* Update ESTA PIDs and data to cover E1.20-2025
+* Add ESTA PIDs and data for E1.37-5
+* Add some E1.37-5 RDM tests
+* Flag potentially redundant RDM tests within our list_rdm_tests tool due to a PID's maximum data size already being at the max PDL
+* Add some E1.33 RDM tests
+* Handle a device info field being unavailable for some reason breaking the RDM model collector
+* Add additional TSP slot ID definitions
 #2042
-#2046
-#2052
-#2054
+* Fix a bunch of minor typos
+* Modify compiler flags to suppress variable length array error
+* Update manufacturer name data to cover latest from ESTA allocations
 
 
 Pychecker stuff
