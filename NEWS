@@ -50,14 +50,14 @@ x/y/2026 ola-0.11.0
 #1299
 #1300
 #1301 - #1290
-#1303
-#1304
-#1305
-#1307
-#1310
-#1312
-#1314
-#1319
+* Clarified/expanded build instructions for Debian and similar distributions
+* Ensure we always stop the RDM responder tests when we've finished testing, so they complete correctly
+* Standardise more RDM responder test names based on their PID names
+* Add some dimmer SET  error case tests to the RDM responder tests
+* Ensure the RDM model collector can continue after an unpack error for a single PID
+* Add additional Status Report Threshold and Status Messages RDM responder tests
+* Add extra E1.37-2 error case RDM responder tests
+* Improve more of our Doxygen documentation
 * Add a new specific OLA_ASSERT_DMX_EQUALS test
 * Initialize members of SPIDMXParser class
 * Remove Protobuf AddDescriptors() call to support newer Protobuf #1192
