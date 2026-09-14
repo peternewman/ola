@@ -2,13 +2,19 @@ x/y/2026 ola-0.11.0
  Uncategorised and unsummarised PRs:
 #1000
 * Add Favicons and manifest files to the new web UI
-#1014
-#1015
-#1035
-#1039
-#1045
-#1052
-#1067
+* Improve our flake8 results and cleanliness
+* Tidy some ola_trigger code and Doxygen documentation
+* Support unquoted numeric variables, arguments and assignment within ola_trigger
+* Fix double counted line numbers in ola_trigger configs
+* Cleanup the Grunt config on the new web UI
+* Move common device info to device description, rather than ports for USBPro and SPI
+* Fix a typo in the SPI output length calculation
+* Fix a Python include path
+* Add support for USB Pro MK II B widgets
+* Make the RDM responder test GetMaxPacketSize test data increment uniquely to help with diagnostics
+* Add more unsupported SET tests to the RDM responder tests
+* Fix the MuteAllDevices RDM responder test for plugins that don't support discovery commands
+* Actually decode PID param data and correct the flag logic in the logic_rdm_sniffer
 #1080 - #1028
 * Update some PLASA references to ESTA
 * Add support for AVLdiy.cn D512 device #1073
