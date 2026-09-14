@@ -73,14 +73,17 @@ x/y/2026 ola-0.11.0
 * Avoid the use of the root logger in the Python API
 * Fix closed socket detection in python3
 * Fix some minor typos 
-#1450
-#1457
-#1467
-#1476
-#1490
-#1494
-#1512
-#1520
+* Detach kernel driver to allow claiming of USB interface when using libusb
+* Use Pandoc to render the GFM config file docs as HTML on the website
+* Extend configure so we switch to C++11 if necessary for Protobuf 3.6 #1463
+* Add support for various dimmer parameter PIDs from E1.37-1 in the web UI and HTTP API
+* Correctly handle double quotes in the README to header converter #1489
+* Add a screenshot mode which hides private data
+* Add additional acronyms to customise capitalization behaviour
+* Collect the device label and additional basic personality info in the RDM model collector
+* Unify the GetOutOfRange and SetOutOfRange Mixins in the RDM responder tests
+* Fix some RDM discovery bugs around suspected muted responders continuing to respond
+* Fix a bug in how we simulate RDM responses and collisions in our discovery test cases
 #1522 - Towards #1396
 * Bump our POM minimum Java requirements
 * Prettify the version option in the auto-generated flags man pages
@@ -143,7 +146,7 @@ x/y/2026 ola-0.11.0
 * Update manufacturer name data to cover latest from ESTA allocations
 * Collect the new E1.37-5 URLs and metadata via the RDM model collector
 * Add support for a lot of the E1.37-5 PIDs to the RDM dummy responders
-* Add additional acronyms to customise capitalization behaviour on
+* Add additional acronyms to customise capitalization behaviour
 
 Pychecker stuff
 E1.33 - cherry picks
