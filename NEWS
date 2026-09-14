@@ -52,21 +52,19 @@ x/y/2026 ola-0.11.0
 #1312
 #1314
 #1319
- * Add a new specific OLA_ASSERT_DMX_EQUALS test
-#1329
-#1336
-#1342
-#1343
-#1348
-#1350
-#1355
-#1358
-#1359
-#1369
-#1380
-#1389
- * Renamed StatusMessageIdToString to StatusCodeToString in the
-   E1.33 E133StatusHelper code to avoid ambiguity
+* Add a new specific OLA_ASSERT_DMX_EQUALS test
+* Initialize members of SPIDMXParser class
+* Remove Protobuf AddDescriptors() call to support newer Protobuf #1192
+* Ensure we populate the named UIDs for the RDM responder tests in all circumstances
+* Increment the transaction number for each RDM packet #189
+* Add support for Nanoleaf Aurora control
+* Renamed *syncron*(sic) to *synchron* across all our code #1331
+* Renamed SC_E133_NONEXISTANT_ENDPOINT(sic) to SC_E133_NONEXISTENT_ENDPOINT in the E133Enums
+* Renamed sucessful(sic) to successful in various parts of usbpro_firmware
+* Add support for APA102 with pixel brightness mode #1356
+* Increase SPI plugin's max port count to 32 #1379
+* Renamed StatusMessageIdToString to StatusCodeToString in the
+  E1.33 E133StatusHelper code to avoid ambiguity
 * Rename ArtNet, Artnet, artnet, Art-net to Art-Net #1328
 * Add support for the Digital Enlightenment USB-DMX interface #241
 * Add support for the FX5 DMX interface #241
