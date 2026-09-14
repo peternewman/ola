@@ -94,19 +94,16 @@ x/y/2026 ola-0.11.0
 * Add support for the Eurolite USB-DMX512 PRO MK2, disabled by default due to clashes with various other FTDI based interfaces
 * Fix GetDimmerMaximumLevel in the RDMAPI only processing one of the two bytes of the value
 #1608 - #1592
-#1620
-#1621
-#1625
-#1633
-#1647
-#1648
-#1683
-#1701
-#1705
-#1706
-#1712
-#1717
-#1720
+* Allow all origin in HTTPServer responses (CORS)
+* Add Stylelint CSS linter and fix the issues it found #1610
+* ola_rdm_get/set should only display actionable PIDs #1632
+* Add in/out point support to ola_recorder #1602
+* Extend ola_streaming_client to optionally read universe numbers from STDIN
+* Fix CORS support in older versions of libmicrohttpd
+* Fix make check on older compilers
+* Fix lots of Python 3 errors
+* Move widget deletion to main thread in usbdmx plugin to avoid potential deadlock
+* More thorough checking of SLOT_INFO and DEFAULT_SLOT_VALUE edge cases in both our responder helpers and the RDM responder tests
 #1787 - #1544
 #1807
 #1826
