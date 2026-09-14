@@ -10,15 +10,15 @@ x/y/2026 ola-0.11.0
 #1052
 #1067
 #1080 - #1028
-#1100
-#1134
-#1136
-#1138
-#1140
-#1142
-#1146
-#1147
-#1176
+* Update some PLASA references to ESTA
+* Add support for AVLdiy.cn D512 device #1073
+* Add support for DMXCreator 512 Basic USB device
+* Allow keyboard input for the keypad in the new web UI
+* Improve some of our Doxygen code documentation
+* Convert the plugin documentation to Markdown and use marked to render it in the new web UI, whilst still generating the description header files for other workflows #678
+* Some minor improvements to the new web UI
+* Add support for ShowJockey SJ-DMX-U1 device
+* Standardise some RDM responder test names to match their PID names
 #1181
 #1185
 #1196
