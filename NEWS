@@ -38,17 +38,17 @@ x/y/2026 ola-0.11.0
 #1268
 #1269
 * Add an ola_trigger config to control relays using crelay
-#1273
-#1275
-#1277
-#1289
-#1292
-#1294
-#1295
-#1297
-#1298
-#1299
-#1300
+* Confirm existing support for LumenRadio CRMX Nova TX USB
+* Tidy RDM Command processing
+* Simplify dummy responder config code
+* Added sensor ranges and units to RDM Model Collector
+* Improve some RDM responder test DMX Personality Description tests
+* Add native SPI DMX support to receive DMX input using an SPI port samping at 2MHz #1285
+* Add support for Eurolite USB-DMX512-PRO MK2
+* Add Status ID Description and Parameter Description without data RDM responder tests
+* Add missing no data, with data and with extra data RDM responder tests
+* Add E1.37-2 based RDM responder tests
+* Simplify the Get and Set Zero Mixins for the RDM responder tests
 * Fix USB PRO change-of-state packet handling to allow valid packets #1290
 * Clarified/expanded build instructions for Debian and similar distributions
 * Ensure we always stop the RDM responder tests when we've finished testing, so they complete correctly
