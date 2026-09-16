@@ -109,26 +109,22 @@ x/y/2026 ola-0.11.0
 * Move widget deletion to main thread in usbdmx plugin to avoid potential deadlock
 * More thorough checking of SLOT_INFO and DEFAULT_SLOT_VALUE edge cases in both our responder helpers and the RDM responder tests
 * Add Kinet portout support #1544
-#1807
-#1826
-#1828
-#1830
-#1831
-#1832
-#1834
-#1840
-#1854
-#1855
-#1888
-#1896
-#1898
-#1901
-#1904
-#1914
-#1926
-#1932
-#1953
-#1976
+* Ensure the dummy data we provide in our RDM responder tests is binary for Python 3 compatibility
+* Document apparent existing support for the Eurolite freeDMX Wi-Fi (from it's manual)
+* Add a helper method to convert an RDMResponse to a NACKing RDMResponse
+* Add the ability to Pack and unpack UIDSets
+* Update JUnit in our POM
+* Update RDM manufacturer names and remove duplicates #1837
+* Fix a number of typos and grammar issues, primarily caught by codespell
+* Update Debian Package Services and Config Directory including adding SystemD support and a build name which is also shown in various places
+* Add Eurolite serial number support, so specific FTDI interfaces can be claimed as Eurolite based on their serial numbers
+* Add testing of MAC addresses within our RDM messaging
+* Add the ability to set a universe to blackout via ola_set_dmx
+* Add some initial IPv6 classes for internal use and via the RDM messaging
+* Add additional E1.33 and E1.37-7 PIDs
+* Track Eurolite MK2 by serial number where available so patching should follow the device
+* Add some E1.33 RDM responder tests
+* Add support for uint64 and int64 internally and via the RDM messaging
 * Add support for DMXControl Projects e.V. Nodle R4S interfaces
 * Check if an interface is listed multiple times in the RDM test for LIST_INTERFACES
 * Fix the build for macOS where endian.h is not available
