@@ -138,7 +138,9 @@ Add support for DMXControl Projects e.V. Nodle R4S interfaces
 * Modify compiler flags to suppress variable length array error
 * Update manufacturer name data to cover latest from ESTA allocations
 
-
+* Collect the new E1.37-5 URLs and metadata via the RDM model collector
+* Add support for a lot of the E1.37-5 PIDs to the RDM dummy responders
+* Add additional acronyms to customise capitalization behaviour on
 Pychecker stuff
 E1.33 - cherry picks
 
