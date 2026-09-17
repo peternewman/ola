@@ -25,18 +25,15 @@ x/y/2026 ola-0.11.0
 * Some minor improvements to the new web UI
 * Add support for ShowJockey SJ-DMX-U1 device
 * Standardise some RDM responder test names to match their PID names
-#1181
-#1185
-#1196
-#1209
-#1213
-#1215
-#1231
-#1237
-#1242
-#1260
-#1268
-#1269
+* Migrate plugin descriptions to Markdown
+* Add a script to list expected RDM responder tests and autogenerate test code for them
+* Renamed *MiniumLevel*(sic) to *MinimumLevel* in various RDM responder test names
+* Add the ability to get info about all universes to the Java API
+* Display manufacturer name from the PID files during RDM responder testing
+* Configure now correctly mangles AM_LDFLAGS instead of LDFLAGS #1201
+* Fix the path to the example OSC plugin walkthrough
+* Fix the categorisation of some RDM responder tests
+* Simplify some code by using our ToHex formatting code more
 * Add an ola_trigger config to control relays using crelay
 * Confirm existing support for LumenRadio CRMX Nova TX USB
 * Tidy RDM Command processing
