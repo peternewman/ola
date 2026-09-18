@@ -182,10 +182,8 @@ x/y/2026 ola-0.11.0
  * Add testing of MAC addresses within our RDM messaging
  * Add some initial IPv6 classes for internal use and via the RDM messaging
  * Add support for uint64 and int64 internally and via the RDM messaging
-
- Uncategorised PRs:
-Pychecker stuff
-E1.33 - cherry picks
+ * Lots of progress towards E1.33 (RDMNet and LLRP) support, although nothing
+   particularly concrete yet
 
 x/y/2026 ola-0.10.10
  Features:
