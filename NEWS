@@ -1,5 +1,6 @@
 x/y/2026 ola-0.11.0
  Features:
+ * Generate coverage
  * Add Favicons and manifest files to the new web UI
  * Support unquoted numeric variables, arguments and assignment within
    ola_trigger
@@ -68,6 +69,10 @@ x/y/2026 ola-0.11.0
  * Update JUnit in our POM
 
  RDM Tests:
+ * Standardise a couple of DMX Fail Mode and Startup Mode tests
+ * Fix the order of hold time and delay times for DMX_STARTUP_MODE and
+   DMX_FAIL_MODE #1842
+ * Correct the PID used for SetDmxStartupMode #1843
  * Make the RDM responder test GetMaxPacketSize test data increment uniquely to
    help with diagnostics
  * Add more unsupported SET tests to the RDM responder tests
@@ -103,6 +108,16 @@ x/y/2026 ola-0.11.0
  * Add some E1.33 RDM tests
 
  Bugs:
+ * Add a missing file to the Python install list
+ * Handle Protoc's non-semver versioning since its release v20.x
+ * Workaround gcovr parse race condition bug
+ * Fix Python dependencies for autopkgtest
+ * Fix error: template-id not allowed for constructor
+ * Fix some Doxygen errors
+ * Update some OSC links
+ * Fix the formatting of some PID values in some Python exceptions
+ * Handle new OSC typing introduced in liblo 0.32 #1949
+ * Correct an SPI sync port documentation bug 
  * Fix double counted line numbers in ola_trigger configs
  * Fix a typo in the SPI output length calculation
  * Fix a Python include path
@@ -156,12 +171,12 @@ x/y/2026 ola-0.11.0
  * Update RDM manufacturer names and remove duplicates #1837
  * Fix a number of typos and grammar issues, primarily caught by codespell
  * Fix the build for macOS where endian.h is not available
- * Fix formatting of PID values in errors in RDM responder tests
  * Modify compiler flags to suppress variable length array error
  * Handle a device info field being unavailable for some reason breaking the RDM
    model collector
 
  Internal:
+ * Update Grunt versions used by the new web UI and rebuild it
  * Improve our pychecker results and cleanliness
  * Improve our flake8 results and cleanliness
  * Tidy some ola_trigger code and Doxygen documentation
@@ -184,36 +199,6 @@ x/y/2026 ola-0.11.0
  * Add support for uint64 and int64 internally and via the RDM messaging
  * Lots of progress towards E1.33 (RDMNet and LLRP) support, although nothing
    particularly concrete yet
-
-x/y/2026 ola-0.10.10
- Features:
- * Generate coverage
-
- API:
- * 
-
- RDM Tests:
- * Standardise a couple of DMX Fail Mode and Startup Mode tests
- * Fix the order of hold time and delay times for DMX_STARTUP_MODE and
-   DMX_FAIL_MODE #1842
- * Correct the PID used for SetDmxStartupMode #1843
-
- Bugs:
- * Add a missing file to the Python install list
- * Handle Protoc's non-semver versioning since its release v20.x
- * Workaround gcovr parse race condition bug
- * Fix Python dependencies for autopkgtest
- * Fix error: template-id not allowed for constructor
- * Fix some Doxygen errors
- * Update some OSC links
- * Fix the formatting of some PID values in some Python exceptions
- * Handle new OSC typing introduced in liblo 0.32 #1949
- * Correct an SPI sync port documentation bug
-
- Internal:
- * Fix lots more internal typos and grammar
- * Fix a number of flake8 errors
- * Update Grunt versions used by the new web UI and rebuild it
 
 26/2/2023 ola-0.10.9
  Features:
