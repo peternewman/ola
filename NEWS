@@ -1,7 +1,7 @@
 x/y/2026 ola-0.11.0
  Features:
  * Generate coverage
- * Add Favicons and manifest files to the new web UI
+ * Add favicons and manifest files to the new web UI
  * Support unquoted numeric variables, arguments and assignment within
    ola_trigger
  * Move common device info to device description, rather than ports for USBPro
@@ -20,7 +20,6 @@ x/y/2026 ola-0.11.0
  * Added sensor ranges and units to RDM Model Collector
  * Add native SPI DMX support to receive DMX input using an SPI port sampling at
    2MHz #1285
- * Add support for Eurolite USB-DMX512-PRO MK2
  * Clarified/expanded build instructions for Debian and similar distributions
  * Add support for Nanoleaf Aurora control
  * Add support for APA102 with pixel brightness mode #1356
@@ -42,9 +41,9 @@ x/y/2026 ola-0.11.0
  * Add in/out point support to ola_recorder #1602
  * Extend ola_streaming_client to optionally read universe numbers from STDIN
  * Add Kinet portout support #1544
- * Document apparent existing support for the Eurolite freeDMX Wi-Fi (from it's
+ * Document apparent existing support for the Eurolite freeDMX Wi-Fi (from its
    manual)
- * Update Debian Package Services and Config Directory including adding SystemD
+ * Update Debian Package Services and Config Directory including adding systemd
    support
  * Add a build name which is shown in various places
  * Add Eurolite serial number support, so specific FTDI interfaces can be
